@@ -85,6 +85,34 @@ input[type=text], select,
               box-shadow 0.55s ease;
 }
 
+/* ── MINIMAL THEME FALLBACK (FOR BROWSERS WITHOUT GLASSMORPHISM / CSS BACKDROP-FILTER) ── */
+@supports not (backdrop-filter: blur(1px)) {
+  .panel, .sum-card, .holding-card, .table-wrap, .app-footer, .calc-drawer, .modal-box {
+    background: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  }
+  html[data-theme="dark"] .panel, 
+  html[data-theme="dark"] .sum-card, 
+  html[data-theme="dark"] .holding-card, 
+  html[data-theme="dark"] .table-wrap, 
+  html[data-theme="dark"] .app-footer, 
+  html[data-theme="dark"] .calc-drawer, 
+  html[data-theme="dark"] .modal-box {
+    background: #141824 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4) !important;
+  }
+  .aurora { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
 body{
   background:var(--bg);
   color:var(--ink);
