@@ -12,6 +12,7 @@
 <!-- SheetJS FOR DIRECT .XLSX GENERATION -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
 <div class="aurora"><span></span><span></span><span></span></div>
@@ -39,8 +40,22 @@
       </div>
     </div>
     
-    <!-- PURE ICON HORIZONTAL SUNRISE / SUNSET ANIMATED THEME SWITCHER (NO TEXT) -->
     <div class="header-actions">
+      <!-- Backup & Restore Data Buttons -->
+      <button type="button" class="btn-backup" id="btnExportBackup" title="সকল সংরক্ষিত খতিয়ান ও ডেটা .json ফাইলে ডাউনলোড করুন">
+        💾 <span>ব্যাকআপ</span>
+      </button>
+      <button type="button" class="btn-restore" id="btnRestoreBackup" title="পূর্বের .json ফাইল থেকে রিস্টোর করুন">
+        📂 <span>রিস্টোর</span>
+      </button>
+      <input type="file" id="jsonRestoreInput" accept=".json" style="display:none;">
+
+      <!-- Optional PWA App Install Banner Button -->
+      <button type="button" class="btn-pwa" id="btnInstallPWA" style="display:none;" title="মোবাইলে অ্যাপ হিসেবে ইনস্টল করুন">
+        📲 <span>ইনস্টল</span>
+      </button>
+
+      <!-- PURE ICON HORIZONTAL SUNRISE / SUNSET ANIMATED THEME SWITCHER -->
       <button class="theme-switch-btn" id="themeToggle" data-tip="থিম পরিবর্তন: সূর্যোদয় ও সূর্যাস্ত" aria-label="থিম পরিবর্তন">
         <div class="sky-track" id="skyTrack">
           <div class="celestial-thumb" id="celestialThumb">

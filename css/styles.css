@@ -1311,3 +1311,112 @@ html[data-theme="dark"] .holding-serial-badge{background:rgba(139,124,255,0.18);
   .floating-group{bottom:16px; right:16px;}
   .calc-drawer{right:10px; bottom:70px; width:295px;}
 }
+
+/* ── SMART v4.5 MOBILE & VISUAL UPDATES ──────────────── */
+
+/* 1. OVER-DEDUCTION NEON WARNING STYLING */
+tr.row-warning {
+  background: rgba(232, 76, 91, 0.08) !important;
+  border-left: 4px solid var(--danger) !important;
+}
+tr.row-warning td {
+  color: var(--danger) !important;
+}
+.warning-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--danger-light);
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 76, 91, 0.3);
+  margin-top: 4px;
+  animation: pulse-danger 2s infinite ease-in-out;
+}
+@keyframes pulse-danger {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.82; transform: scale(0.98); }
+}
+
+/* 2. VISUAL PLOT PROGRESS BAR */
+.plot-progress-wrap {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.plot-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface-3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.plot-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 4px;
+  transition: width 0.5s ease-in-out;
+}
+.plot-progress-fill.overdrawn {
+  background: linear-gradient(90deg, var(--danger), #FF7A85) !important;
+}
+.plot-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* 3. TOOLBAR BACKUP & RESTORE BUTTONS */
+.btn-backup, .btn-restore, .btn-pwa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.25s ease;
+}
+.btn-backup:hover, .btn-restore:hover, .btn-pwa:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* 4. MOBILE TOUCH TARGET & RESPONSIVE OPTIMIZATION */
+@media (max-width: 600px) {
+  .btn-backup, .btn-restore, .btn-pwa {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .unit-select-wrap select {
+    min-height: 44px; /* Touch target accessibility */
+  }
+  input[type="text"], button {
+    touch-action: manipulation;
+  }
+  .table-wrap {
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius);
+  }
+  .brand-text .sub {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .motto {
+    font-size: 11.5px;
+  }
+}

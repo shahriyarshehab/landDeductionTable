@@ -2,9 +2,9 @@
 
 # 🌾 জমি কর্তন টেবিল (Land Deduction Table - LDD4IG)
 
-[![Version](https://img.shields.io/badge/Version-v4.4-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
-[![Status](https://img.shields.io/badge/Status-Active-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
-[![Architecture](https://img.shields.io/badge/Architecture-Modular%20Client--Side-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Version](https://img.shields.io/badge/Version-v4.5-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Branch](https://img.shields.io/badge/Branch-feature%2Fsmart--v4.5--updates-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![PWA Ready](https://img.shields.io/badge/PWA-100%25%20Offline%20Mobile-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
 [![License](https://img.shields.io/badge/License-Copyright%20©%202026-C9922B?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
 
 <br/>
@@ -25,42 +25,46 @@
 
 ## 📁 Project Architecture
 
-The codebase follows a clean, modular folder hierarchy separating markup, styling, JavaScript logic, and media assets:
+The codebase follows a clean, modular folder hierarchy separating markup, styling, JavaScript logic, PWA service workers, and media assets:
 
 ```
 landDeductionTable/
-├── 📄 index.html            # Primary application entry point (Clean HTML5 markup)
+├── 📄 index.html            # Primary application entry point
 ├── 🎨 css/
-│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), layout & print rules
+│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), over-deduction & responsive CSS
 ├── ⚡ js/
-│   └── 📄 app.js            # Precise decimal math engine, LocalStorage, SheetJS exporter & UI
+│   └── 📄 app.js            # Math engine, JSON backup/restore, PWA handlers & LocalStorage
+├── ⚙️ sw.js                 # PWA Service Worker for 100% offline caching
+├── 📱 manifest.json        # Web App Manifest for mobile installation
 ├── 🖼️ assets/
+│   ├── 🖼️ logo.svg          # Brand vector logo asset
 │   └── 🖼️ devImage.jpeg     # Developer avatar image asset
 └── 📝 README.md             # Project documentation & reference guide
 ```
 
 ---
 
-## ✨ Key Features
+## ✨ Key Features (v4.5 Release)
 
-### 🌅 1. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
-* **Sunrise & Sunset Mode**: Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties (Variables) and glassmorphism backdrop filters.
+### 📲 1. Progressive Web App (PWA) & 100% Offline Mobile Operation
+* **Add to Home Screen**: Installable as a standalone native app on Android, iOS, and Desktop devices with `manifest.json`.
+* **Service Worker Caching (`sw.js`)**: Runs 100% offline in rural areas with zero internet connectivity.
 
-### 📊 2. Dynamic Holding Column Allocation & Smart Math Engine
-* **Expression Parser**: Supports natural mathematical expressions directly inside deduction fields (e.g. `১+১+১`, `১.৫+২.০`, or `১.২, ৩.৪`).
-* **Instant Column Split/Merge**: Automatically splits comma/plus separated deductions into individual holding columns or merges them into a single consolidated overview.
+### 💾 2. JSON Data Backup & Instant Restore
+* **JSON Export**: Downloads all stored holdings, active plots, tags, and settings into a timestamped `.json` file (`ldd4ig-land-backup-YYYY-MM-DD.json`).
+* **JSON Restore**: Instantly restores previous backup data onto any device without data loss.
 
-### 📐 3. Floating Universal Land Unit Converter Drawer
-* Real-time converter supporting 8 standard measurement units: **Decimal (শতক), Katha (কাঠা), Bigha (বিঘা), Acre (একর), Hectare (হেক্টর), Kani (কানি), Ganda (গণ্ডা), and Square Feet (বর্গফুট)**.
+### ⚠️ 3. Over-Deduction Neon Warning System
+* **Automatic Over-Deduction Alert**: Detects if total deduction exceeds total plot land area and highlights the row in glowing neon red with a `⚠️ অতি-কর্তন!` alert badge.
 
-### 📥 4. Advanced Spreadsheet Export (.xlsx)
-* Integrated with **SheetJS (`xlsx.full.min.js`)** to generate print-ready Excel spreadsheets for individual holdings or complete bulk export worksheets.
+### 📊 4. Visual Land Plot Progress Bar
+* **Visual Ratio Bar**: Displays a dynamic gradient progress bar on each plot row comparing **Deducted Land %** vs **Remaining Land %**.
 
-### 🖨️ 5. Smart Print & PDF Engine
-* **Auto-Orientation**: Dynamically switches between **A4 Portrait** (standard tables) and **A4 Landscape** (wide holding tables) for optimal printing without clipping data.
+### 📱 5. Mobile-First Touch Optimization
+* Enlarged touch target heights (min 44px) for effortless mobile operation, smooth horizontal table scrolling, and touch-friendly controls.
 
-### 💾 6. Offline-First Storage Engine
-* Built-in `LocalStorage` adapter guarantees zero-data loss, retaining saved holdings, custom tags, and developer profiles completely offline inside the client browser.
+### 🌅 6. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
+* Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties and `@supports` minimal fallback mode.
 
 ---
 
@@ -70,8 +74,9 @@ landDeductionTable/
 | :--- | :--- | :--- |
 | **Frontend UI** | HTML5 / CSS3 Tokens | Modular components, CSS variables, glassmorphism, responsive grid |
 | **Logic & Math** | JavaScript (ES6+) | Precise decimal arithmetic engine & Bangla digit parsing (`BN_DIGITS`) |
+| **Offline App** | PWA Service Worker | Caches shell & assets for 100% offline availability |
+| **Backup/Restore** | Web File API & Blob JSON | Formatted client-side `.json` data serialization & deserialization |
 | **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation |
-| **Typography** | Google Web Fonts | *Anek Bangla, Hind Siliguri, Tiro Bangla, Noto Serif Bengali, Inter* |
 
 ---
 
@@ -82,17 +87,17 @@ landDeductionTable/
 | **Next Cell Entry** | <kbd>Tab</kbd> or <kbd>Enter</kbd> | Move focus seamlessly across Khatian, Holding, Dag, and Land cells |
 | **Auto Row Addition** | <kbd>Enter</kbd> in last deduction cell | Automatically appends a new Plot (দাগ) row for high-speed data entry |
 | **Deduction Math** | `১.৫০+০.৫০` or `১, ২, ৩` | Automatically computes totals and updates remaining land balance |
-| **Column Split** | Click **'হোল্ডিং অনুযায়ী কর্তন'** | Expands multi-value entries into dedicated holding columns |
+| **Data Backup** | Click **💾 ব্যাকআপ** | Downloads `.json` backup file of all saved holdings |
+| **Data Restore** | Click **📂 রিস্টোর** | Selects previous `.json` backup file and restores data |
 
 ---
 
 ## 🚀 Quick Start
 
-Since **Land Deduction Table** is a pure client-side application, no backend server or Node.js build process is required!
-
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/shahriyarshehab/landDeductionTable.git
+   git checkout feature/smart-v4.5-updates
    ```
 2. **Open in Browser**:
    Double click [`index.html`](file:///c:/Users/Shahriyar%20Shehab/Desktop/landDeductionTable/index.html) or launch it using any modern browser (Chrome, Edge, Firefox, Safari).

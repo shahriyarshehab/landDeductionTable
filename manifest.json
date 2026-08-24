@@ -1,0 +1,18 @@
+{
+  "name": "Land Deduction Table - LDD4IG",
+  "short_name": "LDD4IG",
+  "description": "সঠিক পরিমাপ ও অন্তর্ভুক্তিমূলক প্রবৃদ্ধিতে স্মার্ট ডিজিটাল ভূমিসেবা (জমি কর্তন টেবিল)",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0A0E17",
+  "theme_color": "#6E56FF",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

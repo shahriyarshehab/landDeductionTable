@@ -351,6 +351,12 @@ function renderDagTable(focusTarget = null){
     const tr = document.createElement('tr');
     const rowKortonSum = getRowTotalKorton(row);
     const remain = remainingArea(row);
+    const totalAreaNum = parseFloat(toEn(row.area)) || 0;
+    const isOverdrawn = remain < 0 && totalAreaNum > 0;
+
+    if (isOverdrawn) {
+      tr.classList.add('row-warning');
+    }
 
     let trHtml = `
       <td class="col-sl">${bnInt(i+1)}</td>
@@ -366,9 +372,24 @@ function renderDagTable(focusTarget = null){
       });
     }
 
+    const pctDeducted = totalAreaNum > 0 ? (rowKortonSum / totalAreaNum) * 100 : 0;
+    const progressBarHtml = totalAreaNum > 0 ? `
+      <div class="plot-progress-wrap">
+        <div class="plot-progress-bar">
+          <div class="plot-progress-fill ${isOverdrawn ? 'overdrawn' : ''}" style="width: ${Math.min(100, Math.max(0, pctDeducted))}%;"></div>
+        </div>
+        <div class="plot-progress-meta">
+          <span>${isOverdrawn ? '⚠️ অতি-কর্তন!' : `${bnNum(pctDeducted.toFixed(1))}% কর্তন`}</span>
+        </div>
+      </div>
+    ` : '';
+
     trHtml += `
       <td class="korton-total-cell col-korton-total" id="kortonTotal_${i}">${bnNum(rowKortonSum)}</td>
-      <td class="remain-cell col-remain ${remain<0?'neg':''}" id="remain_${i}">${bnNum(remain)}</td>
+      <td class="remain-cell col-remain ${remain<0?'neg':''}" id="remain_${i}">
+        ${bnNum(remain)}
+        ${progressBarHtml}
+      </td>
       <td class="col-del"><button class="row-del" data-i="${i}" title="সারি মুছুন" tabindex="-1">✕</button></td>
     `;
     tr.innerHTML = trHtml;
@@ -1209,6 +1230,137 @@ async function loadAll(){
   }
 }
 
+/* ── 1. PWA SERVICE WORKER & INSTALL PROMPT ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then((reg) => {
+      console.log('[LDD4IG PWA] Service worker registered:', reg.scope);
+    }).catch((err) => {
+      console.warn('[LDD4IG PWA] Service worker registration failed:', err);
+    });
+  });
+}
+
+let deferredPWAInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPWAInstallPrompt = e;
+  const pwaBtn = document.getElementById('btnInstallPWA');
+  if (pwaBtn) pwaBtn.style.display = 'inline-flex';
+});
+
+function triggerPWAInstall() {
+  if (deferredPWAInstallPrompt) {
+    deferredPWAInstallPrompt.prompt();
+    deferredPWAInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        toast('LDD4IG অ্যাপটি সফলভাবে ইনস্টল করা হয়েছে! 🎉');
+      }
+      deferredPWAInstallPrompt = null;
+      const pwaBtn = document.getElementById('btnInstallPWA');
+      if (pwaBtn) pwaBtn.style.display = 'none';
+    });
+  }
+}
+
+/* ── 2. JSON DATA BACKUP & RESTORE ── */
+async function exportJSONBackup() {
+  try {
+    const listRes = await storage.list('holding:', false);
+    const keys = (listRes && listRes.keys) || [];
+    const holdingsData = [];
+    for (const k of keys) {
+      try {
+        const r = await storage.get(k, false);
+        if (r && r.value) holdingsData.push(JSON.parse(r.value));
+      } catch (e) {}
+    }
+    const backupObj = {
+      app: 'LDD4IG Land Deduction Table',
+      version: 'v4.5',
+      exportDate: new Date().toISOString(),
+      currentDraft: {
+        holdingNo: document.getElementById('holdingNoInput').value,
+        khatian: document.getElementById('khatianInput').value,
+        mouja: document.getElementById('moujaInput').value,
+        jlNo: document.getElementById('jlNoInput').value,
+        areaUnit: areaUnit,
+        dagRows: dagRows,
+        kortonCols: kortonCols
+      },
+      savedHoldings: holdingsData
+    };
+    const jsonStr = JSON.stringify(backupObj, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const today = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `ldd4ig-land-backup-${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('সকল ডেটা সফলভাবে .json ফাইলে ডাউনলোড ব্যাকআপ নেওয়া হয়েছে! 💾');
+  } catch (err) {
+    console.error(err);
+    toast('ব্যাকআপ জেনারেট করতে সমস্যা হয়েছে', true);
+  }
+}
+
+async function importJSONBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.savedHoldings && !data.currentDraft) {
+        throw new Error('অবৈধ ব্যাকআপ ফাইল ফরম্যাট');
+      }
+      if (data.savedHoldings && Array.isArray(data.savedHoldings)) {
+        for (const item of data.savedHoldings) {
+          if (item.id) {
+            await storage.set(`holding:${item.id}`, JSON.stringify(item), false);
+          }
+        }
+      }
+      if (data.currentDraft) {
+        const d = data.currentDraft;
+        if (d.holdingNo) document.getElementById('holdingNoInput').value = d.holdingNo;
+        if (d.khatian) document.getElementById('khatianInput').value = d.khatian;
+        if (d.mouja) document.getElementById('moujaInput').value = d.mouja;
+        if (d.jlNo) document.getElementById('jlNoInput').value = d.jlNo;
+        if (d.areaUnit) setAreaUnit(d.areaUnit);
+        if (d.dagRows) dagRows = d.dagRows;
+        if (d.kortonCols) kortonCols = d.kortonCols;
+        renderDagTable();
+        calcTotals();
+      }
+      await loadAll();
+      toast('ব্যাকআপ ফাইল থেকে সফলভাবে ডেটা রিস্টোর করা হয়েছে! 🎉');
+    } catch (err) {
+      console.error(err);
+      toast('ব্যাকআপ ফাইলটি রিস্টোর করা সম্ভব হয়নি: ' + err.message, true);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// Bind Backup & Restore Button Listeners
+document.addEventListener('DOMContentLoaded', () => {
+  const backupBtn = document.getElementById('btnExportBackup');
+  const restoreBtn = document.getElementById('btnRestoreBackup');
+  const restoreInput = document.getElementById('jsonRestoreInput');
+  const pwaBtn = document.getElementById('btnInstallPWA');
+
+  if (backupBtn) backupBtn.addEventListener('click', exportJSONBackup);
+  if (restoreBtn) restoreBtn.addEventListener('click', () => restoreInput && restoreInput.click());
+  if (restoreInput) restoreInput.addEventListener('change', importJSONBackup);
+  if (pwaBtn) pwaBtn.addEventListener('click', triggerPWAInstall);
+});
+
 dagRows=[newDagRow()];
 renderDagTable();
-loadAll();
+loadAll();
