@@ -831,9 +831,11 @@ function printHolding(rec){
   printArea.innerHTML=`
     <div class="print-container">
       <div class="print-header">
-        <div class="print-app-title">Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System for Land Management Automation Project (LMAP)</div>
-        <div class="print-app-partner" style="font-size:12px; font-weight:bold; color:#4F46E5; margin-top:2px;">Ministry of Land | United Nations Development Programme (UNDP) Bangladesh</div>
-        <div class="print-app-motto" style="font-size:13px; font-weight:bold; color:#0F172A; margin-top:3px;">জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই</div>
+        <div class="print-app-partner" style="font-size:11.5px; font-weight:bold; color:#4F46E5; text-transform:uppercase; letter-spacing:0.5px;">Ministry of Land | United Nations Development Programme (UNDP) Bangladesh</div>
+        <div class="print-app-title" style="font-size:16px; font-weight:800; color:#0F172A; margin-top:2px;">Land Management Automation Project (LMAP)</div>
+        <div class="print-app-scope" style="font-size:11.5px; color:#475569; margin-top:2px;">Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System</div>
+        <div class="print-main-heading" style="font-size:18px; font-weight:700; color:#4F46E5; margin-top:4px;">Land Deduction Table (জমি কর্তন হিসাব)</div>
+        <div class="print-app-motto" style="font-size:12.5px; font-weight:600; color:#0F172A; margin-top:3px;">জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই</div>
       </div>
       <div class="print-title-box">
         <h2 class="print-main-title">
@@ -882,10 +884,13 @@ function buildHoldingExcelData(rec){
 
   const aoa = [];
   
-  // 1. App Header & Tagline (Matching Print Header)
-  aoa.push(['Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System for Land Management Automation Project (LMAP)']);
+  // 1. App Header & Tagline (Matching Print Header Hierarchy)
   aoa.push(['Ministry of Land | United Nations Development Programme (UNDP) Bangladesh']);
+  aoa.push(['Land Management Automation Project (LMAP)']);
+  aoa.push(['Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System']);
+  aoa.push(['Land Deduction Table (জমি কর্তন হিসাব)']);
   aoa.push(['জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই']);
+  aoa.push([]); // Spacer row
   
   // 2. Holding Details Title Box (Matching Print Title Box)
   aoa.push([`হোল্ডিং নং: ${toBn(rec.holdingNo)} ${rec.khatian ? '| খতিয়ান নং: ' + toBn(rec.khatian) : ''} | সর্বমোট জমি: ${bnNum(t.area)} ${unitLabelText} | তারিখ: ${uDate}`]);
