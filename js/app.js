@@ -636,7 +636,11 @@ async function saveHolding(){
     await loadAll();
   }catch(err){ console.error(err); toast('সংরক্ষণ ত্রুটি','error'); }
 }
-document.getElementById('saveBtn').addEventListener('click',saveHolding);
+document.getElementById('saveBtn').addEventListener('click', () => {
+  if (requireUserAuth('ডাটা সংরক্ষণ করতে')) {
+    saveHolding();
+  }
+});
 
 function editHolding(record){
   khatianInput.value=record.khatian||'';
@@ -1212,3 +1216,119 @@ async function loadAll(){
 dagRows=[newDagRow()];
 renderDagTable();
 loadAll();
+
+/* ── USER AUTHENTICATION & SESSION CONTROL ENGINE ── */
+let currentUser = null;
+
+function initUserAuth() {
+  try {
+    const storedUser = localStorage.getItem('lmap_active_user');
+    if (storedUser) {
+      currentUser = JSON.parse(storedUser);
+    }
+  } catch (e) {
+    currentUser = null;
+  }
+  renderUserProfileWidget();
+}
+
+function renderUserProfileWidget() {
+  const widget = document.getElementById('userProfileWidget');
+  if (!widget) return;
+
+  if (currentUser) {
+    const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
+    widget.innerHTML = `
+      <div class="user-badge-card" title="লগইনকৃত ইউজার: ${currentUser.name} (${currentUser.role})">
+        <div class="user-avatar-mini">${initial}</div>
+        <div class="user-badge-info">
+          <span class="user-name-text">${currentUser.name}</span>
+          <span class="user-role-badge">${currentUser.role}</span>
+        </div>
+        <button class="btn-logout-mini" id="btnLogoutUser" title="লগআউট করুন">✕</button>
+      </div>
+    `;
+    const btnLogout = document.getElementById('btnLogoutUser');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', logoutUser);
+    }
+  } else {
+    widget.innerHTML = `
+      <button class="btn primary btn-auth-login" id="btnOpenAuthModal">
+        🔑 ইউজার লগইন
+      </button>
+    `;
+    const btnLogin = document.getElementById('btnOpenAuthModal');
+    if (btnLogin) {
+      btnLogin.addEventListener('click', openAuthModal);
+    }
+  }
+}
+
+function requireUserAuth(actionName = 'কাজটি সম্পন্ন করতে') {
+  if (currentUser) return true;
+  toast(`🔒 ${actionName} প্রথমে প্রফেশনাল ইউজার হিসেবে লগইন করুন!`, 'warning');
+  openAuthModal();
+  return false;
+}
+
+function openAuthModal() {
+  const authModal = document.getElementById('authModal');
+  if (authModal) authModal.classList.add('open');
+}
+
+function closeAuthModal() {
+  const authModal = document.getElementById('authModal');
+  if (authModal) authModal.classList.remove('open');
+}
+
+function loginUser(username, password, role) {
+  if (!username || !username.trim()) {
+    toast('অফিসিয়াল ইউজার আইডি ইনপুট দিন', 'error');
+    return;
+  }
+  
+  let displayName = username.trim();
+  if (displayName.includes('@')) {
+    displayName = displayName.split('@')[0];
+  }
+  displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+  currentUser = {
+    id: 'usr_' + Date.now(),
+    username: username.trim(),
+    name: displayName,
+    role: role || 'Operator',
+    loggedInAt: new Date().toISOString()
+  };
+
+  localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+  renderUserProfileWidget();
+  closeAuthModal();
+  toast(`স্বাগতম ${currentUser.name}! প্রফেশনাল সেশন লগইন সফল হয়েছে 🎉`, 'success');
+}
+
+function logoutUser() {
+  currentUser = null;
+  localStorage.removeItem('lmap_active_user');
+  renderUserProfileWidget();
+  toast('সফলভাবে লগআউট করা হয়েছে', 'info');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initUserAuth();
+
+  const closeAuthBtn = document.getElementById('closeAuthBtn');
+  if (closeAuthBtn) closeAuthBtn.addEventListener('click', closeAuthModal);
+
+  const authLoginForm = document.getElementById('authLoginForm');
+  if (authLoginForm) {
+    authLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const uInp = document.getElementById('authUsername');
+      const pInp = document.getElementById('authPassword');
+      const rInp = document.getElementById('authRole');
+      loginUser(uInp.value, pInp.value, rInp.value);
+    });
+  }
+});

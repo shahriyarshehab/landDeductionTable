@@ -47,6 +47,9 @@
     
     <!-- PURE ICON HORIZONTAL SUNRISE / SUNSET ANIMATED THEME SWITCHER (NO TEXT) -->
     <div class="header-actions">
+      <!-- USER AUTHENTICATION PROFILE WIDGET -->
+      <div id="userProfileWidget" class="user-profile-widget"></div>
+
       <button class="theme-switch-btn" id="themeToggle" data-tip="থিম পরিবর্তন: সূর্যোদয় ও সূর্যাস্ত" aria-label="থিম পরিবর্তন">
         <div class="sky-track" id="skyTrack">
           <div class="celestial-thumb" id="celestialThumb">
@@ -334,6 +337,56 @@
 
       <div style="margin-top:16px; padding-top:12px; border-top:1px dashed var(--line); text-align:center; font-size:12px; color:var(--ink-soft);">
         Software Developed by: <strong style="color:var(--primary);">Shahriyar Shehab</strong>, Data Management Facilitator (DMF)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OFFICIAL LMAP USER LOGIN & AUTHENTICATION MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box auth-modal-box">
+    <div class="modal-head">
+      <div class="auth-head-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>LMAP সেশন লগইন ও ব্যবহারকারী প্রমাণীকরণ</span>
+      </div>
+      <button class="modal-close" id="closeAuthBtn" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-banner-notice">
+        🔒 <strong>অফিসিয়াল এক্সেস সিকিউরিটি:</strong> জমি কর্তন ও খতিয়ান ভেরিফিকেশন সিস্টেমে ডাটা ইনপুট, এডিট বা পরিবর্তনের জন্য অফিশিয়াল ইউজার হিসেবে লগইন করা বাধ্যতামূলক।
+      </div>
+
+      <form id="authLoginForm" onsubmit="return false;">
+        <div class="field-wrap" style="margin-bottom:12px;">
+          <label>অফিসিয়াল ইউজার আইডি / ইমেইল <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="authUsername" placeholder="যেমন: operator1 / shehab@land.gov.bd" required autocomplete="username">
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:12px;">
+          <label>পাসওয়ার্ড / এক্সেস পিন <span style="color:var(--danger)">*</span></label>
+          <input type="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:16px;">
+          <label>ব্যবহারকারীর রোল / পদবী <span style="color:var(--danger)">*</span></label>
+          <select id="authRole">
+            <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+            <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+            <option value="Land Officer">সহকারী কমিশনার (ভূমি) / অফিসার</option>
+            <option value="Admin">সিস্টেম এডমিন (Admin / Auditor)</option>
+          </select>
+        </div>
+
+        <div class="btn-row" style="margin-top:18px;">
+          <button type="submit" class="btn primary" id="btnLoginSubmit" style="width:100%; justify-content:center; padding:10px;">
+            🔑 প্রফেশনাল ইউজার হিসেবে প্রবেশ করুন
+          </button>
+        </div>
+      </form>
+
+      <div style="margin-top:14px; text-align:center; font-size:11.5px; color:var(--ink-soft);">
+        ডেমো এক্সেস: যেকোনো আইডি ও পাসওয়ার্ড লিখে লগইন বাটনে ক্লিক করুন।
       </div>
     </div>
   </div>
