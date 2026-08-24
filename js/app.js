@@ -831,8 +831,9 @@ function printHolding(rec){
   printArea.innerHTML=`
     <div class="print-container">
       <div class="print-header">
-        <div class="print-app-title">LDD4IG · Land Data Digitalization for Inclusive Growth</div>
-        <div class="print-app-motto">স্মার্ট ডিজিটাল ভূমিসেবা · জমি কর্তন ও খতিয়ান ব্যবস্থাপনা</div>
+        <div class="print-app-title">Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System for Land Management Automation Project (LMAP)</div>
+        <div class="print-app-partner" style="font-size:12px; font-weight:bold; color:#4F46E5; margin-top:2px;">Ministry of Land | United Nations Development Programme (UNDP) Bangladesh</div>
+        <div class="print-app-motto" style="font-size:13px; font-weight:bold; color:#0F172A; margin-top:3px;">জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই</div>
       </div>
       <div class="print-title-box">
         <h2 class="print-main-title">
@@ -851,10 +852,10 @@ function printHolding(rec){
       </table>
       <div class="print-footer">
         <div class="print-footer-left">
-          সফটওয়্যার ডেভেলপমেন্ট: <strong>Shahriyar Shehab</strong>, Data Management Facilitator (DMF)
+          LMAP · জনবান্ধব ভূমিসেবা অটোমেশন | Software Developed by: <strong>Shahriyar Shehab</strong>, Data Management Facilitator (DMF)
         </div>
         <div class="print-footer-right">
-          LDD4IG Project · সর্বস্বত্ব সংরক্ষিত © ${new Date().getFullYear()}
+          © 2026 Land Management Automation Project (LMAP) · ভূমি মন্ত্রণালয় ও UNDP Bangladesh
         </div>
       </div>
     </div>
@@ -882,8 +883,9 @@ function buildHoldingExcelData(rec){
   const aoa = [];
   
   // 1. App Header & Tagline (Matching Print Header)
-  aoa.push(['LDD4IG · Land Data Digitalization for Inclusive Growth']);
-  aoa.push(['স্মার্ট ডিজিটাল ভূমিসেবা · জমি কর্তন ও খতিয়ান ব্যবস্থাপনা']);
+  aoa.push(['Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System for Land Management Automation Project (LMAP)']);
+  aoa.push(['Ministry of Land | United Nations Development Programme (UNDP) Bangladesh']);
+  aoa.push(['জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই']);
   
   // 2. Holding Details Title Box (Matching Print Title Box)
   aoa.push([`হোল্ডিং নং: ${toBn(rec.holdingNo)} ${rec.khatian ? '| খতিয়ান নং: ' + toBn(rec.khatian) : ''} | সর্বমোট জমি: ${bnNum(t.area)} ${unitLabelText} | তারিখ: ${uDate}`]);
@@ -943,7 +945,8 @@ function buildHoldingExcelData(rec){
 
   // 6. Developer Credit Footer (Matching Print Footer)
   aoa.push([]); // Spacer row
-  aoa.push(['সফটওয়্যার ডেভেলপমেন্ট: Shahriyar Shehab, Data Management Facilitator (DMF) | LDD4IG Project']);
+  aoa.push(['LMAP · জনবান্ধব ভূমিসেবা অটোমেশন | Software Developed by: Shahriyar Shehab, Data Management Facilitator (DMF)']);
+  aoa.push(['© 2026 Land Management Automation Project (LMAP) · ভূমি মন্ত্রণালয় ও UNDP Bangladesh']);
 
   // Calculate clean column widths
   const colWidths = [
@@ -1006,7 +1009,7 @@ function exportToExcel(){
   });
 
   const dStr = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `LDD4IG_Holdings_MultiSheet_${dStr}.xlsx`);
+  XLSX.writeFile(wb, `LMAP_Holdings_MultiSheet_${dStr}.xlsx`);
   toast('সকল হোল্ডিং (.xlsx) এক্সপোর্ট সম্পন্ন ✓', 'success');
 }
 

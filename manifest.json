@@ -1,7 +1,7 @@
 {
-  "name": "Land Deduction Table - LDD4IG",
-  "short_name": "LDD4IG",
-  "description": "সঠিক পরিমাপ ও অন্তর্ভুক্তিমূলক প্রবৃদ্ধিতে স্মার্ট ডিজিটাল ভূমিসেবা (জমি কর্তন টেবিল)",
+  "name": "Land Deduction Table - LMAP",
+  "short_name": "LMAP",
+  "description": "জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই (LMAP - Ministry of Land & UNDP Bangladesh)",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0A0E17",

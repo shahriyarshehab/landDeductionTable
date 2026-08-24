@@ -1,22 +1,29 @@
 <div align="center">
 
-# 🌾 জমি কর্তন টেবিল (Land Deduction Table - LDD4IG)
+# 🌾 জমি কর্তন টেবিল (Land Deduction Table - LMAP)
 
 [![Version](https://img.shields.io/badge/Version-v4.5-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
-[![Branch](https://img.shields.io/badge/Branch-feature%2Fsmart--v4.5--updates-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
-[![PWA Ready](https://img.shields.io/badge/PWA-100%25%20Offline%20Mobile-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Project](https://img.shields.io/badge/Project-LMAP-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Ministry](https://img.shields.io/badge/Ministry-Ministry%20of%20Land-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Partner](https://img.shields.io/badge/Partner-UNDP%20Bangladesh-0070D2?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
 [![License](https://img.shields.io/badge/License-Copyright%20©%202026-C9922B?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
 
 <br/>
 
-**Land Data Digitalization for Inclusive Growth (LDD4IG)**  
-*সঠিক পরিমাপ ও অন্তর্ভুক্তিমূলক প্রবৃদ্ধিতে স্মার্ট ডিজিটাল ভূমিসেবা*
+**Land Management Automation Project (LMAP)**  
+*জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই*
+
+**Ministry of Land | United Nations Development Programme (UNDP) Bangladesh**
 
 [🚀 Quick Start](#-quick-start) • [✨ Key Features](#-key-features) • [📁 Directory Structure](#-project-architecture) • [💡 Usage & Shortcuts](#-keyboard-shortcuts--tips)
 
 </div>
 
 ---
+
+> [!IMPORTANT]
+> **Project Scope**: *Implementation of the Holding Data and Khatian Data Entry and Verification in Integrated System for Land Management Automation Project (LMAP)*  
+> **অফিশিয়াল স্লোগান**: *জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই*
 
 > [!NOTE]
 > **জমি কর্তন টেবিল** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা এবং দাগ-ভিত্তিক জমির কর্তন হিসাব রিয়েল-টাইমে পরিচালনার জন্য তৈরি একটি আধুনিক, ১০০% ক্লায়েন্ট-সাইড (Client-side) ওয়েব অ্যাপ্লিকেশন। এটি ব্যবহার করে অত্যন্ত নির্ভুলভাবে মোট জমি, বিভিন্ন হোল্ডিং অনুযায়ী কর্তন এবং অবশিষ্ট জমির অটোমেটেড হিসাব প্রস্তুত করা যায়।
@@ -29,39 +36,40 @@ The codebase follows a clean, modular folder hierarchy separating markup, stylin
 
 ```
 landDeductionTable/
-├── 📄 index.html            # Primary application entry point
+├── 📄 index.html            # Primary application entry point (LMAP official header/footer)
 ├── 🎨 css/
 │   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), over-deduction & progress bar CSS
 ├── ⚡ js/
-│   └── 📄 app.js            # Math engine, real-time ratio bar calculations, PWA handlers & LocalStorage
+│   └── 📄 app.js            # Math engine, Excel exporter with official headers/footers, PWA handlers & LocalStorage
 ├── ⚙️ sw.js                 # PWA Service Worker for 100% offline caching
-├── 📱 manifest.json        # Web App Manifest for mobile installation
+├── 📱 manifest.json        # Web App Manifest for LMAP mobile installation
 ├── 🖼️ assets/
-│   ├── 🖼️ logo.svg          # Brand vector logo asset
+│   ├── 🖼️ logo.svg          # LMAP Brand vector logo asset
 │   └── 🖼️ devImage.jpeg     # Developer avatar image asset
-└── 📝 README.md             # Project documentation & reference guide
+└── 📝 README.md             # Official project documentation & reference guide
 ```
 
 ---
 
 ## ✨ Key Features (v4.5 Release)
 
-### 📊 1. Real-Time & Saved Cards Visual Plot Progress Bar
+### 📋 1. Official Header & Footer Integration (Print & Excel Export)
+* **Print Copy Header/Footer**: Includes full project scope, Ministry of Land, UNDP Bangladesh, official slogan, LMAP branding, and copyright details on printed documents.
+* **Identical Excel (.xlsx) Structure**: Generated `.xlsx` spreadsheets feature the exact same official header, holding metadata, totals, and credit footer as the print preview.
+
+### 📊 2. Real-Time & Saved Cards Visual Plot Progress Bar
 * **Real-Time Keystroke Calculation**: Displays an animated gradient progress bar comparing **Deducted Land %** vs **Remaining Land %** in real-time as users type.
 * **Compact Saved Cards Indicator**: Renders a sleek mini ratio bar on every saved holding card row (`.mini-plot-progress-bar`).
 
-### ⚠️ 2. Over-Deduction Neon Warning System
+### ⚠️ 3. Over-Deduction Neon Warning System
 * **Automatic Over-Deduction Alert**: Detects if total deduction exceeds total plot land area and highlights the row in glowing neon red with a `⚠️ অতি-কর্তন!` alert badge.
 
-### 📲 3. Progressive Web App (PWA) & 100% Offline Mobile Operation
+### 📲 4. Progressive Web App (PWA) & 100% Offline Mobile Operation
 * **Add to Home Screen**: Installable as a standalone native app on Android, iOS, and Desktop devices with `manifest.json`.
 * **Service Worker Caching (`sw.js`)**: Runs 100% offline in rural areas with zero internet connectivity.
 
-### 📱 4. Mobile-First Touch Optimization
+### 📱 5. Mobile-First Touch Optimization
 * Enlarged touch target heights (min 44px) for effortless mobile operation, smooth horizontal table scrolling, and touch-friendly controls.
-
-### 🌅 5. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
-* Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties and `@supports` minimal fallback mode.
 
 ---
 
@@ -72,7 +80,7 @@ landDeductionTable/
 | **Frontend UI** | HTML5 / CSS3 Tokens | Modular components, CSS variables, glassmorphism, responsive grid |
 | **Logic & Math** | JavaScript (ES6+) | Precise decimal arithmetic engine & Bangla digit parsing (`BN_DIGITS`) |
 | **Offline App** | PWA Service Worker | Caches shell & assets for 100% offline availability |
-| **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation |
+| **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation with official headers |
 
 ---
 
@@ -107,7 +115,7 @@ landDeductionTable/
 
 ### **Shahriyar Shehab**
 **Data Management Facilitator (DMF)**  
-*Project:* **LDD4IG** (*Land Data Digitalization for Inclusive Growth*)
+*Project:* **LMAP** (*Land Management Automation Project*)
 
 </div>
 
@@ -115,5 +123,5 @@ landDeductionTable/
 
 ## 📜 License
 
-© 2026 **LDD4IG Project** · All Rights Reserved.  
-*স্মার্ট ভূমি সেবা, ডিজিটাল বাংলাদেশ।*
+© 2026 **Land Management Automation Project (LMAP)** · **Ministry of Land & UNDP Bangladesh** · All Rights Reserved.  
+*জনবান্ধব ভূমিসেবা অটোমেশন — স্বচ্ছতার সাথে ভূমিসেবা সহজেই*
