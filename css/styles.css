@@ -1366,6 +1366,26 @@ html[data-theme="dark"] .holding-serial-badge{background:rgba(139,124,255,0.18);
   font-weight: 700;
   color: var(--ink);
 }
+.footer-partner-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 3px 0;
+}
+.partner-org {
+  font-family: var(--font-en);
+}
+.partner-bullet {
+  color: var(--primary);
+  font-weight: bold;
+}
 .footer-sub {
   font-size: 11.5px;
   font-weight: 600;
