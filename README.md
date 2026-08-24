@@ -1,46 +1,101 @@
-# জমি কর্তন টেবিল (Land Deduction Table - LDD4IG)
-
 <div align="center">
+
+# 🌾 জমি কর্তন টেবিল (Land Deduction Table - LDD4IG)
+
+[![Version](https://img.shields.io/badge/Version-v4.4-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Status](https://img.shields.io/badge/Status-Active-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Architecture](https://img.shields.io/badge/Architecture-Modular%20Client--Side-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![License](https://img.shields.io/badge/License-Copyright%20©%202026-C9922B?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+
+<br/>
 
 **Land Data Digitalization for Inclusive Growth (LDD4IG)**  
 *সঠিক পরিমাপ ও অন্তর্ভুক্তিমূলক প্রবৃদ্ধিতে স্মার্ট ডিজিটাল ভূমিসেবা*
+
+[🚀 Quick Start](#-quick-start) • [✨ Key Features](#-key-features) • [📁 Directory Structure](#-project-architecture) • [💡 Usage & Shortcuts](#-keyboard-shortcuts--tips)
 
 </div>
 
 ---
 
-## 🌟 Overview
-
-**জমি কর্তন টেবিল** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা, এবং দাগ ভিত্তিক জমির কর্তন হিসাব নিখুঁতভাবে পরিচালনার জন্য তৈরি একটি আধুনিক, ইউজার-ফ্রেন্ডলি এবং ১০০% ব্রাউজার-বেড (Client-side) ওয়েব অ্যাপ্লিকেশন। এটি ব্যবহার করে খুব সহজেই জমির মোট পরিমাণ, বিভিন্ন হোল্ডিং অনুযায়ী কর্তন এবং অবশিষ্ট জমির রিয়েল-টাইম হিসাব করা যায়।
-
----
-
-## ✨ Key Features & Functionalities
-
-* **দ্বৈত থিম সিস্টেম (Sunrise & Sunset Theme Switcher):** দিনের আলো ও রাতের পরিবেশের সাথে সামঞ্জস্য রেখে আধুনিক অ্যানিমেটেড থিম টগল সুবিধা।
-* **ডায়নামিক হোল্ডিং কর্তন কলাম:** নির্দিষ্ট হোল্ডিং বা খতিয়ানের জন্য একাধিক কাস্টম কর্তন কলাম তৈরি এবং স্বয়ংক্রিয় যোগফল নির্ণয়।
-* **ইউনিট রূপান্তর (Unit Selection):** সরাসরি **শতক (Decimal)** এবং **একর (Acre)** পরিমাপক এককের মধ্যে হিসাব পরিবর্তন ও সংরক্ষণ।
-* **সার্বজনীন ভূমি ক্যালকুলেটর:** শতক, কাঠা, বিঘা, একর, হেক্টর, কানি, গণ্ডা এবং বর্গফুটের মধ্যে রিয়েল-টাইম রূপান্তরের জন্য ভাসমান ক্যালকুলেটর ড্রয়ার।
-* **অ্যাডভান্সড এক্সেল এক্সপোর্ট (.xlsx):** SheetJS লাইব্রেরি ব্যবহার করে একক হোল্ডিং অথবা সকল সংরক্ষিত হোল্ডিং আলাদা শিটসহ এক্সেল ফাইলে ডাউনলোড করার সুবিধা।
-* **পরিচ্ছন্ন প্রিন্ট ও পিডিএফ সাপোর্ট:** অফিসিয়াল রিপোর্টের জন্য সুবিন্যস্ত ও কমপ্যাক্ট প্রিন্ট প্রিভিউ।
-* **স্থানীয় ডাটা স্টোরেজ:** ব্রাউজারের নিজস্ব লোকাল স্টোরেজ ও আধুনিক স্টোরেজ অ্যাডাপ্টারের মাধ্যমে সম্পূর্ণ নিরাপদ ও অফলাইন ডাটা সংরক্ষণ।
+> [!NOTE]
+> **জমি কর্তন টেবিল** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা এবং দাগ-ভিত্তিক জমির কর্তন হিসাব রিয়েল-টাইমে পরিচালনার জন্য তৈরি একটি আধুনিক, ১০০% ক্লায়েন্ট-সাইড (Client-side) ওয়েব অ্যাপ্লিকেশন। এটি ব্যবহার করে অত্যন্ত নির্ভুলভাবে মোট জমি, বিভিন্ন হোল্ডিং অনুযায়ী কর্তন এবং অবশিষ্ট জমির অটোমেটেড হিসাব প্রস্তুত করা যায়।
 
 ---
 
-## 🚀 Technology Stack
+## 📁 Project Architecture
 
-* **HTML5 / CSS3:** আধুনিক টোকেন সিস্টেম, CSS Variables, ফ্লেক্সবক্স ও গ্রিড লেআউট।
-* **JavaScript (ES6+):** রিয়েল-টাইম ডোম ম্যানিপুলেশন, সুনির্দিষ্ট দশমিক হিসাব (Exact Precision Decimal Arithmetic) এবং বাংলা ডিজিট রূপান্তর ইঞ্জিন।
-* **SheetJS (`xlsx.full.min.js`):** সরাসরি ব্রাউজারে স্প্রেডশিট বা এক্সেল ফাইল জেনারেট করার জন্য।
-* **Google Fonts:** Tiro Bangla, Hind Siliguri, এবং Inter ফন্ট ফ্যামিলি।
+The codebase follows a clean, modular folder hierarchy separating markup, styling, JavaScript logic, and media assets:
+
+```
+landDeductionTable/
+├── 📄 index.html            # Primary application entry point (Clean HTML5 markup)
+├── 🎨 css/
+│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), layout & print rules
+├── ⚡ js/
+│   └── 📄 app.js            # Precise decimal math engine, LocalStorage, SheetJS exporter & UI
+├── 🖼️ assets/
+│   └── 🖼️ devImage.jpeg     # Developer avatar image asset
+└── 📝 README.md             # Project documentation & reference guide
+```
 
 ---
 
-## 💡 Quick Start & Usage Tips
+## ✨ Key Features
 
-1. **ডেটা এন্ট্রি শর্টকাট:** মাউস ব্যবহার ছাড়াই দ্রুত কাজ করতে খতিয়ান, হোল্ডিং এবং দাগ নম্বর লিখে Enter বা Tab চাপুন। শেষ সারির কর্তন ঘরে Enter চাপলে স্বয়ংক্রিয়ভাবে নতুন দাগের সারি তৈরি হবে।
-2. **হোল্ডিং অনুযায়ী কর্তন:** টেবিলে একাধিক হোল্ডিংয়ের কর্তন দেখতে **'হোল্ডিং অনুযায়ী কর্তন'** বাটনে ক্লিক করুন।
-3. **প্রোফাইল কাস্টমাইজেশন:** ফুটারের ডেভেলপার কার্ডের অবতার ছবিতে ক্লিক করে নিজের পছন্দমতো ছবি আপলোড ও স্থায়ীভাবে সেভ করতে পারেন।
+### 🌅 1. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
+* **Sunrise & Sunset Mode**: Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties (Variables) and glassmorphism backdrop filters.
+
+### 📊 2. Dynamic Holding Column Allocation & Smart Math Engine
+* **Expression Parser**: Supports natural mathematical expressions directly inside deduction fields (e.g. `১+১+১`, `১.৫+২.০`, or `১.২, ৩.৪`).
+* **Instant Column Split/Merge**: Automatically splits comma/plus separated deductions into individual holding columns or merges them into a single consolidated overview.
+
+### 📐 3. Floating Universal Land Unit Converter Drawer
+* Real-time converter supporting 8 standard measurement units: **Decimal (শতক), Katha (কাঠা), Bigha (বিঘা), Acre (একর), Hectare (হেক্টর), Kani (কানি), Ganda (গণ্ডা), and Square Feet (বর্গফুট)**.
+
+### 📥 4. Advanced Spreadsheet Export (.xlsx)
+* Integrated with **SheetJS (`xlsx.full.min.js`)** to generate print-ready Excel spreadsheets for individual holdings or complete bulk export worksheets.
+
+### 🖨️ 5. Smart Print & PDF Engine
+* **Auto-Orientation**: Dynamically switches between **A4 Portrait** (standard tables) and **A4 Landscape** (wide holding tables) for optimal printing without clipping data.
+
+### 💾 6. Offline-First Storage Engine
+* Built-in `LocalStorage` adapter guarantees zero-data loss, retaining saved holdings, custom tags, and developer profiles completely offline inside the client browser.
+
+---
+
+## ⚡ Tech Stack & Libraries
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend UI** | HTML5 / CSS3 Tokens | Modular components, CSS variables, glassmorphism, responsive grid |
+| **Logic & Math** | JavaScript (ES6+) | Precise decimal arithmetic engine & Bangla digit parsing (`BN_DIGITS`) |
+| **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation |
+| **Typography** | Google Web Fonts | *Anek Bangla, Hind Siliguri, Tiro Bangla, Noto Serif Bengali, Inter* |
+
+---
+
+## 💡 Keyboard Shortcuts & Tips
+
+| Action | Shortcut / Input Syntax | Result |
+| :--- | :--- | :--- |
+| **Next Cell Entry** | <kbd>Tab</kbd> or <kbd>Enter</kbd> | Move focus seamlessly across Khatian, Holding, Dag, and Land cells |
+| **Auto Row Addition** | <kbd>Enter</kbd> in last deduction cell | Automatically appends a new Plot (দাগ) row for high-speed data entry |
+| **Deduction Math** | `১.৫০+০.৫০` or `১, ২, ৩` | Automatically computes totals and updates remaining land balance |
+| **Column Split** | Click **'হোল্ডিং অনুযায়ী কর্তন'** | Expands multi-value entries into dedicated holding columns |
+
+---
+
+## 🚀 Quick Start
+
+Since **Land Deduction Table** is a pure client-side application, no backend server or Node.js build process is required!
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/shahriyarshehab/landDeductionTable.git
+   ```
+2. **Open in Browser**:
+   Double click [`index.html`](file:///c:/Users/Shahriyar%20Shehab/Desktop/landDeductionTable/index.html) or launch it using any modern browser (Chrome, Edge, Firefox, Safari).
 
 ---
 
@@ -48,11 +103,11 @@
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/shahriyarshehab/bhumicutTable/main/devImage.jpeg" width="100" height="100" style="border-radius: 50%; object-fit: cover;" alt="Shahriyar Shehab">
+<img src="./assets/devImage.jpeg" width="110" height="110" style="border-radius: 50%; object-fit: cover; box-shadow: 0 4px 14px rgba(110,86,255,0.3);" alt="Shahriyar Shehab">
 
-**Shahriyar Shehab**  
-*Data Management Facilitator (DMF)*  
-**Project:** LDD4IG (Land Data Digitalization for Inclusive Growth)
+### **Shahriyar Shehab**
+**Data Management Facilitator (DMF)**  
+*Project:* **LDD4IG** (*Land Data Digitalization for Inclusive Growth*)
 
 </div>
 
@@ -60,4 +115,5 @@
 
 ## 📜 License
 
-© 2026 **LDD4IG Project** · সর্বস্বত্ব সংরক্ষিত।
+© 2026 **LDD4IG Project** · All Rights Reserved.  
+*স্মার্ট ভূমি সেবা, ডিজিটাল বাংলাদেশ।*

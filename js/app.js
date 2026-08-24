@@ -1,0 +1,1214 @@
+const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+
+/* ── STORAGE ADAPTER ── */
+const storage = window.storage || {
+  get: async (key) => ({ value: localStorage.getItem(key) }),
+  set: async (key, val) => { localStorage.setItem(key, val); return true; },
+  delete: async (key) => { localStorage.removeItem(key); return true; },
+  list: async (prefix) => {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(prefix)) keys.push(k);
+    }
+    return { keys };
+  }
+};
+
+function toBn(str){ return String(str).replace(/[0-9]/g, d => BN_DIGITS[d]); }
+function toEn(str){ return String(str).replace(/[০-৯]/g, d => BN_DIGITS.indexOf(d)); }
+function parseNum(str){ const v=parseFloat(toEn(str).replace(/[^0-9.\-]/g,'')); return isNaN(v)?0:v; }
+
+/* ── EXACT PRECISION DECIMAL ARITHMETIC ── */
+function cleanDecimal(val){
+  if(typeof val !== 'number' || isNaN(val)) return 0;
+  return Math.round((val + Number.EPSILON) * 1e8) / 1e8;
+}
+
+/* SUPPORT BOTH COMMA (,), PLUS SIGN (+) AND WHITESPACE AS DELIMITERS (e.g. 1+1+1 works identically to 1,1,1) */
+function kortonList(str){ 
+  return toEn(str).split(/[,+\s]+/).map(s=>s.trim()).filter(s=>s.length>0); 
+}
+
+function kortonSum(str){
+  const sum = kortonList(str).reduce((acc,s)=>{
+    const v = parseFloat(s);
+    return isNaN(v) ? acc : (acc + v);
+  }, 0);
+  return cleanDecimal(sum);
+}
+
+function getRowTotalKorton(row){
+  if(kortonCols.length > 0){
+    let sum = 0;
+    kortonCols.forEach(col => {
+      const val = row.kortonByHolding && row.kortonByHolding[col.id] ? parseNum(row.kortonByHolding[col.id]) : 0;
+      sum += val;
+    });
+    return cleanDecimal(sum);
+  } else {
+    return kortonSum(row.korton);
+  }
+}
+
+function remainingArea(row){
+  const a = parseNum(row.area);
+  const k = getRowTotalKorton(row);
+  return cleanDecimal(a - k);
+}
+
+function bnNum(num){
+  if(isNaN(num) || num === null || num === undefined) return toBn('0.00');
+  const clean = cleanDecimal(num);
+  let str = clean.toString();
+  if(!str.includes('.')){
+    str += '.00';
+  } else {
+    const parts = str.split('.');
+    if(parts.length < 2){
+      str = parts[0] + '.' + parts.padEnd(2, '0');
+    }
+  }
+  return toBn(str);
+}
+function bnInt(num){ return toBn(String(num)); }
+
+/* ── AREA UNIT (ভূমি পরিমাপক একক: শতক / একর) ── */
+const ACRE_FACTOR = 100;
+const UNIT_LABEL = { shotok:'শতক', acre:'একর' };
+let areaUnit = 'shotok';
+
+function convertValue(valStr, toUnit){
+  if(!valStr || !String(valStr).trim()) return '';
+  const num = parseNum(valStr);
+  if(isNaN(num) || num === 0) return '';
+  const converted = (toUnit === 'acre') ? (num / ACRE_FACTOR) : (num * ACRE_FACTOR);
+  const rounded = cleanDecimal(converted);
+  return toBn(String(rounded));
+}
+
+function convertKortonString(kortonStr, toUnit){
+  if(!kortonStr || !String(kortonStr).trim()) return '';
+  const parts = kortonList(kortonStr);
+  return parts.map(p => {
+    const num = parseFloat(p);
+    if(isNaN(num) || num === 0) return '';
+    const converted = (toUnit === 'acre') ? (num / ACRE_FACTOR) : (num * ACRE_FACTOR);
+    const rounded = cleanDecimal(converted);
+    return toBn(String(rounded));
+  }).filter(Boolean).join(', ');
+}
+
+function attachAutoBangla(inputEl){
+  inputEl.addEventListener('input',()=>{
+    const pos=inputEl.selectionStart;
+    const converted=toBn(inputEl.value);
+    if(converted!==inputEl.value){inputEl.value=converted; try{inputEl.setSelectionRange(pos,pos);}catch(e){}}
+  });
+}
+
+/* ── HORIZONTAL SUNRISE & SUNSET THEME TOGGLE ENGINE (NO TEXT) ── */
+const themeToggle = document.getElementById('themeToggle');
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
+async function initTheme(){
+  let theme = 'light';
+  try{
+    const r = await storage.get('theme-preference', false);
+    if(r && r.value){ theme = r.value; }
+    else if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){ theme = 'dark'; }
+  }catch(e){
+    if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+  }
+  applyTheme(theme);
+}
+
+themeToggle.addEventListener('click', async () => {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  
+  applyTheme(next);
+  try{ await storage.set('theme-preference', next, false); }catch(e){}
+});
+initTheme();
+
+/* ── ACTIVE UNIT DROPDOWN ── */
+const unitSelect = document.getElementById('unitSelect');
+
+function applyUnitLabels(){
+  if(unitSelect) unitSelect.value = areaUnit;
+  const uTag1 = document.getElementById('unitTag1');
+  const uTag2 = document.getElementById('unitTag2');
+  const uTag3 = document.getElementById('unitTag3');
+  if(uTag1) uTag1.textContent = UNIT_LABEL[areaUnit];
+  if(uTag2) uTag2.textContent = UNIT_LABEL[areaUnit];
+  if(uTag3) uTag3.textContent = UNIT_LABEL[areaUnit];
+}
+
+unitSelect.addEventListener('change', (e) => {
+  const newUnit = e.target.value;
+  if(newUnit === areaUnit) return;
+  areaUnit = newUnit;
+  applyUnitLabels();
+
+  dagRows = dagRows.map(r => {
+    const updatedHoldingMap = {};
+    if(r.kortonByHolding){
+      Object.keys(r.kortonByHolding).forEach(k => {
+        updatedHoldingMap[k] = convertValue(r.kortonByHolding[k], areaUnit);
+      });
+    }
+    return {
+      dagNo: r.dagNo,
+      area: convertValue(r.area, areaUnit),
+      korton: convertKortonString(r.korton, areaUnit),
+      kortonByHolding: updatedHoldingMap
+    };
+  });
+
+  renderDagTable();
+});
+
+/* ── FLOATING HELP MODAL CONTROLS ── */
+const floatingHelpToggle = document.getElementById('floatingHelpToggle');
+const helpModal = document.getElementById('helpModal');
+const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+function openHelp(){ helpModal.classList.add('open'); }
+function closeHelp(){ helpModal.classList.remove('open'); }
+
+floatingHelpToggle.addEventListener('click', openHelp);
+closeHelpBtn.addEventListener('click', closeHelp);
+helpModal.addEventListener('click', (e)=>{ if(e.target === helpModal) closeHelp(); });
+
+/* ── CORE DATA & INPUT ELEMENTS ── */
+const dagThead=document.getElementById('dagThead');
+const dagBody=document.getElementById('dagBody');
+const dagTfoot=document.getElementById('dagTfoot');
+const holdingsList=document.getElementById('holdingsList');
+const summaryRow=document.getElementById('summaryRow');
+const toastEl=document.getElementById('toast');
+const formHeading=document.getElementById('formHeading');
+const khatianInput=document.getElementById('khatian');
+const holdingNoInput=document.getElementById('holdingNo');
+attachAutoBangla(khatianInput);
+attachAutoBangla(holdingNoInput);
+
+khatianInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    holdingNoInput.focus();
+  }
+});
+
+holdingNoInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const firstDagInput = dagBody.querySelector('input[data-i="0"][data-f="dagNo"]');
+    if (firstDagInput) firstDagInput.focus();
+  }
+});
+
+let kortonCols = [];
+let dagRows = [];
+let editingId = null;
+
+let toastTimer = null;
+function toast(msg, type='success'){
+  toastEl.textContent=msg;
+  toastEl.className='toast show ' + type;
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2200);
+}
+
+function newDagRow(){ 
+  const rowObj = { dagNo:'', area:'', korton:'', kortonByHolding: {} };
+  kortonCols.forEach(col => { rowObj.kortonByHolding[col.id] = ''; });
+  return rowObj;
+}
+
+/* ── LIVE SUMMARY LOGIC ── */
+function updateLiveSummary(){
+  let totalArea = 0, totalKorton = 0, totalRemain = 0, validDags = 0;
+  dagRows.forEach(r => {
+    const a = parseNum(r.area);
+    const k = getRowTotalKorton(r);
+    const rem = remainingArea(r);
+    totalArea = cleanDecimal(totalArea + a);
+    totalKorton = cleanDecimal(totalKorton + k);
+    totalRemain = cleanDecimal(totalRemain + rem);
+    if (r.dagNo.trim() !== '' || a > 0 || k > 0) {
+      validDags++;
+    }
+  });
+
+  const footArea = document.getElementById('footArea');
+  const footKorton = document.getElementById('footKorton');
+  const footRemain = document.getElementById('footRemain');
+  if(footArea) footArea.textContent = bnNum(totalArea);
+  if(footKorton) footKorton.textContent = bnNum(totalKorton);
+  if(footRemain) footRemain.textContent = bnNum(totalRemain);
+
+  kortonCols.forEach(col => {
+    let colSum = 0;
+    dagRows.forEach(r => {
+      if(r.kortonByHolding && r.kortonByHolding[col.id]) colSum += parseNum(r.kortonByHolding[col.id]);
+    });
+    const colFoot = document.getElementById('footCol_' + col.id);
+    if(colFoot) colFoot.textContent = bnNum(cleanDecimal(colSum));
+  });
+
+  summaryRow.innerHTML = `
+    <div class="sum-card navy">
+      <div class="label">চলমান দাগ সংখ্যা</div>
+      <div class="val">${bnInt(validDags)}</div>
+      <div class="icon">📋</div>
+    </div>
+    <div class="sum-card">
+      <div class="label">সর্বমোট জমি (${UNIT_LABEL[areaUnit]})</div>
+      <div class="val">${bnNum(totalArea)}</div>
+      <div class="icon">🌾</div>
+    </div>
+    <div class="sum-card alt">
+      <div class="label">মোট কর্তনকৃত জমি (${UNIT_LABEL[areaUnit]})</div>
+      <div class="val">${bnNum(totalKorton)}</div>
+      <div class="icon">✂️</div>
+    </div>
+    <div class="sum-card gold">
+      <div class="label">অবশিষ্ট জমি (${UNIT_LABEL[areaUnit]})</div>
+      <div class="val">${bnNum(totalRemain)}</div>
+      <div class="icon">✅</div>
+    </div>
+  `;
+}
+
+/* ── RENDER TWO-TIER MERGED TABLE HEADER & BODY ── */
+function renderDagTable(focusTarget = null){
+  let theadHtml = '';
+
+  // Update Toggle Button label and state
+  const toggleBtn = document.getElementById('toggleKortonModeBtn');
+  const btnText = document.getElementById('kortonBtnText');
+  const btnIcon = document.getElementById('kortonBtnIcon');
+  if(toggleBtn && btnText && btnIcon){
+    if(kortonCols.length === 0){
+      btnText.textContent = 'হোল্ডিং অনুযায়ী কর্তন';
+      toggleBtn.setAttribute('data-tip', 'প্লাস (+) বা কমা দিয়ে পৃথক করা কর্তনগুলোকে আলাদা হোল্ডিং কলামে বিভক্ত করুন');
+      btnIcon.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="3" x2="12" y2="21"/><path d="M16 8l3 3-3 3"/><path d="M8 16l-3-3 3-3"/>';
+    } else {
+      btnText.textContent = 'একত্রিত কর্তন হিসাব';
+      toggleBtn.setAttribute('data-tip', 'সকল হোল্ডিং কলাম একত্রিত করে একটি একক ঘরে নিয়ে আসুন');
+      btnIcon.innerHTML = '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>';
+    }
+  }
+
+  if(kortonCols.length === 0){
+    theadHtml = `<tr>
+      <th class="col-sl">ক্রমিক</th>
+      <th class="col-dag">দাগ নম্বর</th>
+      <th class="col-area">জমির পরিমাণ (<span id="unitTag1">${UNIT_LABEL[areaUnit]}</span>)</th>
+      <th class="col-korton">কর্তনকৃত জমি (একাধিক কর্তন + বা কমা দ্বারা লিখুন)</th>
+      <th class="col-korton-total">মোট কর্তন (<span id="unitTag3">${UNIT_LABEL[areaUnit]}</span>)</th>
+      <th class="col-remain">অবশিষ্ট জমি (<span id="unitTag2">${UNIT_LABEL[areaUnit]}</span>)</th>
+      <th class="col-del"></th>
+    </tr>`;
+  } else {
+    theadHtml = `
+      <tr>
+        <th class="col-sl" rowspan="2">ক্রমিক</th>
+        <th class="col-dag" rowspan="2">দাগ নম্বর</th>
+        <th class="col-area" rowspan="2">জমির পরিমাণ (<span id="unitTag1">${UNIT_LABEL[areaUnit]}</span>)</th>
+        <th colspan="${kortonCols.length}" style="text-align:center; background:var(--surface-2); font-size:12.5px; color:var(--primary); font-weight:700; border-bottom:1px solid var(--line-strong); padding:7px 8px;">
+          হোল্ডিং অনুযায়ী কর্তন
+        </th>
+        <th class="col-korton-total" rowspan="2">মোট কর্তন (<span id="unitTag3">${UNIT_LABEL[areaUnit]}</span>)</th>
+        <th class="col-remain" rowspan="2">অবশিষ্ট জমি (<span id="unitTag2">${UNIT_LABEL[areaUnit]}</span>)</th>
+        <th class="col-del" rowspan="2"></th>
+      </tr>
+      <tr>
+    `;
+    kortonCols.forEach((col, idx) => {
+      const isLast = (idx === kortonCols.length - 1);
+      theadHtml += `
+        <th style="min-width:120px; text-align:center; padding:5px 6px; background:var(--surface-3);">
+          <div class="kcol-header-wrap">
+            <input type="text" data-colid="${col.id}" class="kcol-input" value="${col.holdingNo}" placeholder="হোল্ডিং নং" title="হোল্ডিং নম্বর">
+            <button type="button" class="kcol-del" data-colid="${col.id}" title="কলাম মুছুন" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; padding:2px;">✕</button>
+            ${isLast ? `<button type="button" class="kcol-add-inline" title="আরেকটি হোল্ডিং যোগ করুন" style="background:var(--primary-light); border:1px solid var(--primary); color:var(--primary); cursor:pointer; font-size:11.5px; font-weight:bold; border-radius:4px; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; margin-left:2px;">＋</button>` : ''}
+          </div>
+        </th>
+      `;
+    });
+    theadHtml += `</tr>`;
+  }
+  dagThead.innerHTML = theadHtml;
+
+  dagBody.innerHTML = '';
+  dagRows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    const rowKortonSum = getRowTotalKorton(row);
+    const remain = remainingArea(row);
+
+    let trHtml = `
+      <td class="col-sl">${bnInt(i+1)}</td>
+      <td class="col-dag"><input type="text" inputmode="numeric" maxlength="6" data-i="${i}" data-f="dagNo" value="${row.dagNo}" placeholder="দাগ নং" style="text-align:center;"></td>
+      <td class="col-area"><input type="text" inputmode="decimal" maxlength="8" data-i="${i}" data-f="area" value="${row.area}" placeholder="০.০০" style="text-align:right;"></td>`;
+
+    if(kortonCols.length === 0){
+      trHtml += `<td class="col-korton"><input type="text" data-i="${i}" data-f="korton" value="${row.korton}" placeholder="${areaUnit==='acre'?'০.১৫+০.২০ বা কমা':'১.৫+২.০ বা কমা'}" style="text-align:right;"></td>`;
+    } else {
+      kortonCols.forEach(col => {
+        const val = row.kortonByHolding && row.kortonByHolding[col.id] ? row.kortonByHolding[col.id] : '';
+        trHtml += `<td><input type="text" inputmode="decimal" maxlength="8" data-i="${i}" data-colid="${col.id}" class="cell-kcol" value="${val}" placeholder="০.০০" style="text-align:right;"></td>`;
+      });
+    }
+
+    trHtml += `
+      <td class="korton-total-cell col-korton-total" id="kortonTotal_${i}">${bnNum(rowKortonSum)}</td>
+      <td class="remain-cell col-remain ${remain<0?'neg':''}" id="remain_${i}">${bnNum(remain)}</td>
+      <td class="col-del"><button class="row-del" data-i="${i}" title="সারি মুছুন" tabindex="-1">✕</button></td>
+    `;
+    tr.innerHTML = trHtml;
+    dagBody.appendChild(tr);
+  });
+
+  const totalColCount = 6 + (kortonCols.length > 0 ? kortonCols.length - 1 : 0);
+  const addRowTr = document.createElement('tr');
+  addRowTr.innerHTML = `
+    <td colspan="${totalColCount + 1}" style="text-align:left; background:var(--surface-2); padding:6px 10px; border-bottom:1.5px solid var(--line-strong);">
+      <button type="button" class="btn ghost" id="addDagInlineBtn" data-tip="টিপ: শেষ ঘরে Enter চাপলে নতুন দাগ তৈরি হবে" style="border-style:dashed; border-width:1.5px; border-color:var(--primary); color:var(--primary); background:var(--primary-light); font-weight:600; padding:4px 14px; font-size:12.5px;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        নতুন দাগ যুক্ত করুন
+      </button>
+    </td>
+  `;
+  dagBody.appendChild(addRowTr);
+
+  let tfootHtml = `<tr>
+    <td colspan="2">সর্বমোট</td>
+    <td id="footArea">০.০০</td>`;
+
+  if(kortonCols.length === 0){
+    tfootHtml += `<td></td>`;
+  } else {
+    kortonCols.forEach(col => {
+      tfootHtml += `<td style="color:var(--danger); text-align:right; font-weight:600;" id="footCol_${col.id}">০.০০</td>`;
+    });
+  }
+
+  tfootHtml += `
+    <td id="footKorton" style="color:var(--danger);">০.০০</td>
+    <td id="footRemain">০.০০</td>
+    <td></td>
+  </tr>`;
+  dagTfoot.innerHTML = tfootHtml;
+
+  dagBody.querySelector('#addDagInlineBtn').addEventListener('click', () => {
+    dagRows.push(newDagRow());
+    renderDagTable({ index: dagRows.length - 1, field: 'dagNo' });
+  });
+
+  dagThead.querySelectorAll('.kcol-input').forEach(inp => {
+    attachAutoBangla(inp);
+    inp.addEventListener('input', e => {
+      const colId = e.target.dataset.colid;
+      const target = kortonCols.find(c => c.id === colId);
+      if(target) target.holdingNo = e.target.value;
+    });
+  });
+
+  dagThead.querySelectorAll('.kcol-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const colId = e.target.dataset.colid;
+      kortonCols = kortonCols.filter(c => c.id !== colId);
+      dagRows.forEach(r => {
+        if(r.kortonByHolding) delete r.kortonByHolding[colId];
+      });
+      renderDagTable();
+    });
+  });
+
+  dagThead.querySelectorAll('.kcol-add-inline').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const colId = 'kc_' + Date.now();
+      kortonCols.push({ id: colId, holdingNo: '' });
+      dagRows.forEach(r => {
+        if(!r.kortonByHolding) r.kortonByHolding = {};
+        r.kortonByHolding[colId] = '';
+      });
+      renderDagTable();
+    });
+  });
+
+  dagBody.querySelectorAll('input').forEach(inp => {
+    attachAutoBangla(inp);
+    inp.addEventListener('input', e => {
+      const i = +e.target.dataset.i;
+      const f = e.target.dataset.f;
+      const colId = e.target.dataset.colid;
+
+      if(colId){
+        if(!dagRows[i].kortonByHolding) dagRows[i].kortonByHolding = {};
+        dagRows[i].kortonByHolding[colId] = e.target.value;
+      } else if(f){
+        dagRows[i][f] = e.target.value;
+      }
+      updateRowRemain(i);
+      updateLiveSummary();
+    });
+
+    inp.addEventListener('keydown', e => {
+      const i = +e.target.dataset.i;
+      const f = e.target.dataset.f;
+      const colId = e.target.dataset.colid;
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (f === 'dagNo') {
+          const next = dagBody.querySelector(`input[data-i="${i}"][data-f="area"]`);
+          if (next) next.focus();
+        } else if (f === 'area') {
+          if(kortonCols.length === 0){
+            const next = dagBody.querySelector(`input[data-i="${i}"][data-f="korton"]`);
+            if (next) next.focus();
+          } else {
+            const next = dagBody.querySelector(`input[data-i="${i}"][data-colid="${kortonCols[0].id}"]`);
+            if (next) next.focus();
+          }
+        } else if (f === 'korton' || (colId && colId === kortonCols[kortonCols.length - 1].id)) {
+          if (i === dagRows.length - 1) {
+            dagRows.push(newDagRow());
+            renderDagTable({ index: i + 1, field: 'dagNo' });
+          } else {
+            const next = dagBody.querySelector(`input[data-i="${i + 1}"][data-f="dagNo"]`);
+            if (next) next.focus();
+          }
+        } else if (colId) {
+          const cIndex = kortonCols.findIndex(c => c.id === colId);
+          if(cIndex >= 0 && cIndex < kortonCols.length - 1){
+            const next = dagBody.querySelector(`input[data-i="${i}"][data-colid="${kortonCols[cIndex+1].id}"]`);
+            if (next) next.focus();
+          }
+        }
+      } else if (e.key === 'Tab' && !e.shiftKey && (f === 'korton' || (colId && colId === kortonCols[kortonCols.length - 1].id)) && i === dagRows.length - 1) {
+        e.preventDefault();
+        dagRows.push(newDagRow());
+        renderDagTable({ index: i + 1, field: 'dagNo' });
+      }
+    });
+  });
+
+  dagBody.querySelectorAll('.row-del').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.target.dataset.i;
+      dagRows.splice(i, 1);
+      if(dagRows.length === 0) dagRows.push(newDagRow());
+      renderDagTable();
+    });
+  });
+
+  updateLiveSummary();
+
+  if (focusTarget) {
+    const targetInput = dagBody.querySelector(`input[data-i="${focusTarget.index}"][data-f="${focusTarget.field}"]`);
+    if (targetInput) targetInput.focus();
+  }
+}
+
+function updateRowRemain(i){
+  const remainCell=document.getElementById('remain_'+i);
+  const kortonTotalCell=document.getElementById('kortonTotal_'+i);
+  const kSum = getRowTotalKorton(dagRows[i]);
+  const remain = remainingArea(dagRows[i]);
+
+  if(kortonTotalCell) {
+    kortonTotalCell.textContent = bnNum(kSum);
+  }
+  if(remainCell) {
+    remainCell.textContent = bnNum(remain);
+    remainCell.classList.toggle('neg', remain < 0);
+  }
+}
+
+/* ── SMART TOGGLE: MULTI-HOLDING COLUMN SPLIT & UNIFIED MERGE (ACCEPTS + AND ,) ── */
+document.getElementById('toggleKortonModeBtn').addEventListener('click', () => {
+  if(kortonCols.length === 0){
+    let maxCols = 0;
+    dagRows.forEach(r => {
+      const list = kortonList(r.korton);
+      if(list.length > maxCols) maxCols = list.length;
+    });
+    if(maxCols === 0) maxCols = 2;
+
+    kortonCols = [];
+    for(let c = 0; c < maxCols; c++){
+      kortonCols.push({ id: 'kc_' + Date.now() + '_' + c, holdingNo: '' });
+    }
+
+    dagRows.forEach(r => {
+      const list = kortonList(r.korton);
+      if(!r.kortonByHolding) r.kortonByHolding = {};
+      kortonCols.forEach((col, idx) => {
+        r.kortonByHolding[col.id] = list[idx] ? toBn(list[idx]) : '';
+      });
+      r.korton = '';
+    });
+
+    toast('হোল্ডিং অনুযায়ী আলাদা কর্তন কলাম তৈরি হয়েছে ✓', 'success');
+  } else {
+    dagRows.forEach(r => {
+      const combined = kortonCols
+        .map(col => (r.kortonByHolding && r.kortonByHolding[col.id]) ? r.kortonByHolding[col.id].trim() : '')
+        .filter(v => v.length > 0)
+        .join(', ');
+      r.korton = combined;
+      r.kortonByHolding = {};
+    });
+    kortonCols = [];
+
+    toast('একত্রিত কর্তন হিসাবে পরিবর্তন করা হয়েছে ✓', 'success');
+  }
+  renderDagTable();
+});
+
+function clearForm(){
+  khatianInput.value='';
+  holdingNoInput.value='';
+  kortonCols = [];
+  dagRows=[newDagRow()];
+  editingId=null;
+  formHeading.textContent='';
+  formHeading.style.display='none';
+  areaUnit = 'shotok';
+  applyUnitLabels();
+  renderDagTable();
+}
+document.getElementById('clearFormBtn').addEventListener('click',clearForm);
+
+async function saveHolding(){
+  const khatian=khatianInput.value.trim();
+  const holdingNo=holdingNoInput.value.trim();
+  const validRows=dagRows.filter(r=>r.dagNo.trim()!=='');
+  if(!holdingNo){ toast('হোল্ডিং নম্বর আবশ্যক','error'); return; }
+  if(validRows.length===0){ toast('দাগ নম্বর আবশ্যক','error'); return; }
+
+  const savedRows = validRows.map(r => {
+    const updatedMap = {};
+    if(r.kortonByHolding){
+      Object.keys(r.kortonByHolding).forEach(k => {
+        updatedMap[k] = r.kortonByHolding[k] || '';
+      });
+    }
+    let combinedKorton = '';
+    if(kortonCols.length > 0){
+      combinedKorton = kortonCols.map(c => updatedMap[c.id]).filter(v => v && String(v).trim() !== '').join(', ');
+    } else {
+      combinedKorton = r.korton || '';
+    }
+
+    return {
+      dagNo: r.dagNo,
+      area: r.area,
+      korton: combinedKorton,
+      kortonByHolding: updatedMap
+    };
+  });
+
+  const id=editingId||('h_'+Date.now());
+  const record={
+    id,
+    khatian,
+    holdingNo,
+    areaUnit,
+    kortonCols: kortonCols.map(c => ({ ...c })),
+    dagRows: savedRows,
+    updatedAt: Date.now()
+  };
+
+  try{
+    const res=await storage.set('holding:'+id,JSON.stringify(record));
+    if(!res){ toast('সংরক্ষণ ব্যর্থ','error'); return; }
+    toast('সংরক্ষণ সম্পন্ন ✓ (' + UNIT_LABEL[areaUnit] + ')','success');
+    clearForm();
+    await loadAll();
+  }catch(err){ console.error(err); toast('সংরক্ষণ ত্রুটি','error'); }
+}
+document.getElementById('saveBtn').addEventListener('click',saveHolding);
+
+function editHolding(record){
+  khatianInput.value=record.khatian||'';
+  holdingNoInput.value=record.holdingNo||'';
+  areaUnit = record.areaUnit || 'shotok';
+  applyUnitLabels();
+  
+  kortonCols = (record.kortonCols && record.kortonCols.length) ? record.kortonCols.map(c => ({...c})) : [];
+  
+  dagRows = (record.dagRows && record.dagRows.length)
+    ? record.dagRows.map(r => {
+        const map = {};
+        if(r.kortonByHolding){
+          Object.keys(r.kortonByHolding).forEach(k => {
+            map[k] = r.kortonByHolding[k] || '';
+          });
+        }
+        return {
+          dagNo: r.dagNo,
+          area: r.area,
+          korton: r.korton,
+          kortonByHolding: map
+        };
+      })
+    : [newDagRow()];
+
+  editingId=record.id;
+  formHeading.textContent='হোল্ডিং সম্পাদনা — নং '+toBn(record.holdingNo)+' ('+UNIT_LABEL[areaUnit]+')';
+  formHeading.style.display='block';
+  renderDagTable();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function deleteHolding(id){
+  if(!confirm('হোল্ডিং তথ্য মুছে ফেলতে চান?')) return;
+  try{
+    await storage.delete('holding:'+id);
+    toast('তথ্য মোছা হয়েছে');
+    await loadAll();
+  }catch(err){ console.error(err); toast('মোছা ব্যর্থ','error'); }
+}
+
+function holdingTotals(record){
+  let area=0,korton=0,remain=0;
+  record.dagRows.forEach(r=>{
+    area = cleanDecimal(area + parseNum(r.area));
+    korton = cleanDecimal(korton + getRowTotalKorton(r));
+    remain = cleanDecimal(remain + remainingArea(r));
+  });
+  return {area,korton,remain};
+}
+
+function sanitizeFilename(str){ return String(str).trim().replace(/[\\\/:*?"<>|]+/g,'').replace(/\s+/g,'_')||'হোল্ডিং'; }
+
+/* ── SMART DYNAMIC PRINT (STRICT 0PX BORDER-RADIUS WITH APP BRANDING ON TOP & DEVELOPER ON BOTTOM) ── */
+function printHolding(rec){
+  const recUnit = rec.areaUnit || 'shotok';
+  const unitLabelText = UNIT_LABEL[recUnit];
+  const t = holdingTotals(rec);
+  const printArea = document.getElementById('printArea');
+  const hasCols = rec.kortonCols && rec.kortonCols.length > 0;
+  
+  // Calculate total columns to choose best orientation (Portrait vs Landscape)
+  const totalCols = hasCols ? (5 + rec.kortonCols.length) : 6;
+  const isLandscape = hasCols || totalCols > 5;
+
+  // Dynamically configure @page orientation
+  let printStyle = document.getElementById('printPageOrientation');
+  if(!printStyle){
+    printStyle = document.createElement('style');
+    printStyle.id = 'printPageOrientation';
+    document.head.appendChild(printStyle);
+  }
+  if(isLandscape){
+    printStyle.textContent = `@media print { @page { size: A4 landscape; margin: 10mm 12mm; } }`;
+  } else {
+    printStyle.textContent = `@media print { @page { size: A4 portrait; margin: 12mm 14mm; } }`;
+  }
+
+  let thead = '';
+  if(!hasCols){
+    thead = `<tr>
+      <th style="width:45px; text-align:center;">ক্রমিক</th>
+      <th style="width:80px; text-align:center;">দাগ নম্বর</th>
+      <th>মোট জমি (${unitLabelText})</th>
+      <th>কর্তনকৃত জমি (বিস্তারিত)</th>
+      <th>মোট কর্তন (${unitLabelText})</th>
+      <th>অবশিষ্ট জমি (${unitLabelText})</th>
+    </tr>`;
+  } else {
+    thead = `
+      <tr>
+        <th style="width:45px; text-align:center;" rowspan="2">ক্রমিক</th>
+        <th style="width:80px; text-align:center;" rowspan="2">দাগ নম্বর</th>
+        <th rowspan="2">মোট জমি (${unitLabelText})</th>
+        <th colspan="${rec.kortonCols.length}" style="text-align:center; background:#4F46E5 !important; color:#fff !important;">হোল্ডিং অনুযায়ী কর্তন</th>
+        <th rowspan="2">মোট কর্তন (${unitLabelText})</th>
+        <th rowspan="2">অবশিষ্ট জমি (${unitLabelText})</th>
+      </tr>
+      <tr>
+        ${rec.kortonCols.map(c => `<th style="text-align:center; font-size:12px;">${toBn(c.holdingNo || '—')}</th>`).join('')}
+      </tr>
+    `;
+  }
+
+  let tbody = rec.dagRows.map((r, i) => {
+    let rowHtml = `<tr>
+      <td style="text-align:center;">${bnInt(i+1)}</td>
+      <td style="text-align:center; font-weight:600;">${toBn(r.dagNo)}</td>
+      <td>${bnNum(parseNum(r.area))}</td>`;
+
+    if(hasCols){
+      rec.kortonCols.forEach(c => {
+        const val = r.kortonByHolding && r.kortonByHolding[c.id] ? parseNum(r.kortonByHolding[c.id]) : 0;
+        rowHtml += `<td style="color:#E84C5B;">${val > 0 ? bnNum(val) : '—'}</td>`;
+      });
+    } else {
+      rowHtml += `<td>${kortonList(r.korton).map(v=>bnNum(parseFloat(v)||0)).join(', ')||'—'}</td>`;
+    }
+
+    rowHtml += `
+      <td style="color:#E84C5B; font-weight:600;">${bnNum(getRowTotalKorton(r))}</td>
+      <td style="font-weight:700; color:#4F46E5;">${bnNum(remainingArea(r))}</td>
+    </tr>`;
+    return rowHtml;
+  }).join('');
+
+  let tfoot = `<tr>
+    <td colspan="2" style="text-align:center; font-weight:bold;">সর্বমোট:</td>
+    <td style="font-weight:bold; color:#111; text-align:right;">${bnNum(t.area)}</td>`;
+
+  if(hasCols){
+    rec.kortonCols.forEach(c => {
+      let colSum = 0;
+      rec.dagRows.forEach(r => {
+        if(r.kortonByHolding && r.kortonByHolding[c.id]) colSum += parseNum(r.kortonByHolding[c.id]);
+      });
+      tfoot += `<td style="color:#E84C5B; font-weight:bold; text-align:right;">${bnNum(cleanDecimal(colSum))}</td>`;
+    });
+  } else {
+    tfoot += `<td style="text-align:center;">—</td>`;
+  }
+
+  tfoot += `
+    <td style="color:#E84C5B; font-weight:bold; text-align:right;">${bnNum(t.korton)}</td>
+    <td style="font-weight:bold; color:#4F46E5; text-align:right;">${bnNum(t.remain)}</td>
+  </tr>`;
+
+  printArea.innerHTML=`
+    <div class="print-container">
+      <div class="print-header">
+        <div class="print-app-title">LDD4IG · Land Data Digitalization for Inclusive Growth</div>
+        <div class="print-app-motto">স্মার্ট ডিজিটাল ভূমিসেবা · জমি কর্তন ও খতিয়ান ব্যবস্থাপনা</div>
+      </div>
+      <div class="print-title-box">
+        <h2 class="print-main-title">
+          হোল্ডিং নং: ${toBn(rec.holdingNo)}
+          ${rec.khatian ? ' &nbsp;|&nbsp; খতিয়ান নং: ' + toBn(rec.khatian) : ''}
+          &nbsp;|&nbsp; সর্বমোট জমি: ${bnNum(t.area)} ${unitLabelText}
+        </h2>
+        <div class="print-meta-sub">
+          প্রিন্ট তারিখ: ${new Date().toLocaleDateString('bn-BD')} &nbsp;|&nbsp; মোট দাগ: ${bnInt(rec.dagRows.length)} টি &nbsp;|&nbsp; ওরিয়েন্টেশন: ${isLandscape ? 'ল্যান্ডস্কেপ (Landscape)' : 'পোর্ট্রেট (Portrait)'}
+        </div>
+      </div>
+      <table class="print-table">
+        <thead>${thead}</thead>
+        <tbody>${tbody}</tbody>
+        <tfoot>${tfoot}</tfoot>
+      </table>
+      <div class="print-footer">
+        <div class="print-footer-left">
+          সফটওয়্যার ডেভেলপমেন্ট: <strong>Shahriyar Shehab</strong>, Data Management Facilitator (DMF)
+        </div>
+        <div class="print-footer-right">
+          LDD4IG Project · সর্বস্বত্ব সংরক্ষিত © ${new Date().getFullYear()}
+        </div>
+      </div>
+    </div>
+  `;
+
+  const originalTitle=document.title;
+  document.title=sanitizeFilename(toBn(rec.holdingNo));
+  const restoreTitle=()=>{
+    document.title=originalTitle;
+    if(printStyle) printStyle.textContent = '';
+    window.removeEventListener('afterprint',restoreTitle);
+  };
+  window.addEventListener('afterprint',restoreTitle);
+  setTimeout(()=>{ window.print(); setTimeout(restoreTitle,1000); },50);
+}
+
+/* ── BUILD STRUCTURED EXCEL SHEET DATA (SAME TO SAME AS PRINT FILE) ── */
+function buildHoldingExcelData(rec){
+  const recUnit = rec.areaUnit || 'shotok';
+  const unitLabelText = UNIT_LABEL[recUnit];
+  const t = holdingTotals(rec);
+  const uDate = rec.updatedAt ? new Date(rec.updatedAt).toLocaleDateString('bn-BD') : new Date().toLocaleDateString('bn-BD');
+  const hasCols = rec.kortonCols && rec.kortonCols.length > 0;
+
+  const aoa = [];
+  
+  // 1. App Header & Tagline (Matching Print Header)
+  aoa.push(['LDD4IG · Land Data Digitalization for Inclusive Growth']);
+  aoa.push(['স্মার্ট ডিজিটাল ভূমিসেবা · জমি কর্তন ও খতিয়ান ব্যবস্থাপনা']);
+  
+  // 2. Holding Details Title Box (Matching Print Title Box)
+  aoa.push([`হোল্ডিং নং: ${toBn(rec.holdingNo)} ${rec.khatian ? '| খতিয়ান নং: ' + toBn(rec.khatian) : ''} | সর্বমোট জমি: ${bnNum(t.area)} ${unitLabelText} | তারিখ: ${uDate}`]);
+  aoa.push([]); // Spacer row
+
+  // 3. Table Column Headers
+  const headers = ['ক্রমিক', 'দাগ নম্বর', `জমির পরিমাণ (${unitLabelText})`];
+  if(hasCols){
+    rec.kortonCols.forEach(c => {
+      headers.push(`হোল্ডিং_${toBn(c.holdingNo || '—')}_কর্তন`);
+    });
+  } else {
+    headers.push('কর্তনকৃত জমি (বিস্তারিত)');
+  }
+  headers.push(`মোট কর্তন (${unitLabelText})`);
+  headers.push(`অবশিষ্ট জমি (${unitLabelText})`);
+  aoa.push(headers);
+
+  // 4. Data Rows
+  rec.dagRows.forEach((r, i) => {
+    const area = parseNum(r.area);
+    const korton = getRowTotalKorton(r);
+    const rem = remainingArea(r);
+    const row = [toBn(i + 1), toBn(r.dagNo), area];
+
+    if(hasCols){
+      rec.kortonCols.forEach(c => {
+        const val = r.kortonByHolding && r.kortonByHolding[c.id] ? parseNum(r.kortonByHolding[c.id]) : 0;
+        row.push(val > 0 ? val : 0);
+      });
+    } else {
+      const kDet = kortonList(r.korton).map(v => bnNum(parseFloat(v) || 0)).join(', ');
+      row.push(kDet || '—');
+    }
+
+    row.push(korton);
+    row.push(rem);
+    aoa.push(row);
+  });
+
+  // 5. Table Footer / Totals Row
+  const foot = ['সর্বমোট:', '', t.area];
+  if(hasCols){
+    rec.kortonCols.forEach(c => {
+      let colSum = 0;
+      rec.dagRows.forEach(r => {
+        if(r.kortonByHolding && r.kortonByHolding[c.id]) colSum += parseNum(r.kortonByHolding[c.id]);
+      });
+      foot.push(cleanDecimal(colSum));
+    });
+  } else {
+    foot.push('—');
+  }
+  foot.push(t.korton);
+  foot.push(t.remain);
+  aoa.push(foot);
+
+  // 6. Developer Credit Footer (Matching Print Footer)
+  aoa.push([]); // Spacer row
+  aoa.push(['সফটওয়্যার ডেভেলপমেন্ট: Shahriyar Shehab, Data Management Facilitator (DMF) | LDD4IG Project']);
+
+  // Calculate clean column widths
+  const colWidths = [
+    { wch: 10 }, // ক্রমিক
+    { wch: 14 }, // দাগ নম্বর
+    { wch: 22 }, // জমির পরিমাণ
+  ];
+  if(hasCols){
+    rec.kortonCols.forEach(() => colWidths.push({ wch: 18 }));
+  } else {
+    colWidths.push({ wch: 28 });
+  }
+  colWidths.push({ wch: 20 }); // মোট কর্তন
+  colWidths.push({ wch: 20 }); // অবশিষ্ট জমি
+
+  return { aoa, colWidths };
+}
+
+/* ── GENUINE .XLSX EXPORT (SINGLE HOLDING) ── */
+function exportSingleHoldingExcel(rec){
+  if(typeof XLSX === 'undefined'){
+    toast('এক্সেল এক্সপোর্ট লাইব্রেরি লোড হচ্ছে...', 'error');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  const sName = ('হোল্ডিং_' + toBn(rec.holdingNo || '১')).replace(/[:\\/?*\[\]]/g, '').slice(0, 30);
+  const { aoa, colWidths } = buildHoldingExcelData(rec);
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = colWidths;
+  XLSX.utils.book_append_sheet(wb, ws, sName);
+
+  const fname = sanitizeFilename('হোল্ডিং_' + toBn(rec.holdingNo)) + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  toast('হোল্ডিং নং ' + toBn(rec.holdingNo) + ' এক্সেল (.xlsx) এক্সপোর্ট সম্পন্ন ✓', 'success');
+}
+
+/* ── GENUINE .XLSX EXPORT (ALL HOLDINGS MULTI-SHEET) ── */
+function exportToExcel(){
+  if (!allRecords || allRecords.length === 0) {
+    toast('তথ্য পাওয়া যায়নি', 'error');
+    return;
+  }
+  if(typeof XLSX === 'undefined'){
+    toast('এক্সেল এক্সপোর্ট লাইব্রেরি লোড হচ্ছে...', 'error');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+  const usedNames = new Set();
+
+  allRecords.forEach((rec, idx) => {
+    let sName = ('হোল্ডিং_' + toBn(rec.holdingNo || (idx+1))).replace(/[:\\/?*\[\]]/g, '').slice(0, 30);
+    if (usedNames.has(sName)) sName += '_' + (idx+1);
+    usedNames.add(sName);
+
+    const { aoa, colWidths } = buildHoldingExcelData(rec);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = colWidths;
+    XLSX.utils.book_append_sheet(wb, ws, sName);
+  });
+
+  const dStr = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `LDD4IG_Holdings_MultiSheet_${dStr}.xlsx`);
+  toast('সকল হোল্ডিং (.xlsx) এক্সপোর্ট সম্পন্ন ✓', 'success');
+}
+
+document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+
+/* ── FLOATING UNIVERSAL LAND CONVERTER WIDGET ── */
+const floatingCalcToggle = document.getElementById('floatingHelpToggle');
+const calcDrawer = document.getElementById('calcDrawer');
+const closeCalcBtn = document.getElementById('closeCalcBtn');
+const calcClearBtn = document.getElementById('calcClearBtn');
+
+const floatingCalcBtn = document.getElementById('floatingCalcToggle');
+if(floatingCalcBtn){
+  floatingCalcBtn.addEventListener('click', () => calcDrawer.classList.toggle('open'));
+}
+closeCalcBtn.addEventListener('click', () => calcDrawer.classList.remove('open'));
+
+const calcInputs = {
+  shotok: document.getElementById('calc_shotok'),
+  katha: document.getElementById('calc_katha'),
+  bigha: document.getElementById('calc_bigha'),
+  acre: document.getElementById('calc_acre'),
+  hectare: document.getElementById('calc_hectare'),
+  kani: document.getElementById('calc_kani'),
+  ganda: document.getElementById('calc_ganda'),
+  sqft: document.getElementById('calc_sqft')
+};
+
+Object.values(calcInputs).forEach(inp => attachAutoBangla(inp));
+
+function updateAllUnitsFromShotok(shotokVal, sourceKey){
+  if(isNaN(shotokVal) || shotokVal <= 0){
+    Object.keys(calcInputs).forEach(k => {
+      if(k !== sourceKey) calcInputs[k].value = '';
+    });
+    return;
+  }
+
+  const values = {
+    shotok: shotokVal,
+    katha: shotokVal / 1.65,
+    bigha: shotokVal / 33,
+    acre: shotokVal / 100,
+    hectare: shotokVal / 247.105,
+    kani: shotokVal / 40,
+    ganda: shotokVal / 2,
+    sqft: shotokVal * 435.6
+  };
+
+  Object.keys(calcInputs).forEach(k => {
+    if(k !== sourceKey){
+      const val = cleanDecimal(values[k]);
+      calcInputs[k].value = toBn(String(val));
+    }
+  });
+}
+
+function handleCalcInput(unitKey, value){
+  const num = parseNum(value);
+  if(num <= 0 || isNaN(num)){
+    updateAllUnitsFromShotok(0, unitKey);
+    return;
+  }
+
+  let shotokVal = 0;
+  switch(unitKey){
+    case 'shotok': shotokVal = num; break;
+    case 'katha': shotokVal = num * 1.65; break;
+    case 'bigha': shotokVal = num * 33; break;
+    case 'acre': shotokVal = num * 100; break;
+    case 'hectare': shotokVal = num * 247.105; break;
+    case 'kani': shotokVal = num * 40; break;
+    case 'ganda': shotokVal = num * 2; break;
+    case 'sqft': shotokVal = num / 435.6; break;
+  }
+  updateAllUnitsFromShotok(shotokVal, unitKey);
+}
+
+Object.keys(calcInputs).forEach(k => {
+  calcInputs[k].addEventListener('input', (e) => handleCalcInput(k, e.target.value));
+});
+
+calcClearBtn.addEventListener('click', () => {
+  Object.values(calcInputs).forEach(inp => inp.value = '');
+});
+
+/* ── HOLDINGS LIST RENDER (WITH NO LOGO ON SINGLE EXCEL BUTTON) ── */
+function renderHoldingsList(records){
+  if(records.length===0){
+    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">📂</div><strong>কোনো কর্তনকৃত হোল্ডিং নেই</strong></div>`;
+    return;
+  }
+  holdingsList.innerHTML='';
+  records.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach((rec, idx)=>{
+    const serialNo = toBn(idx + 1);
+    const recUnit = rec.areaUnit || 'shotok';
+    const unitLabelText = UNIT_LABEL[recUnit];
+    const t = holdingTotals(rec);
+    const card = document.createElement('div');
+    card.className = 'holding-card';
+    const hasCols = rec.kortonCols && rec.kortonCols.length > 0;
+
+    let miniThead = '';
+    if(!hasCols){
+      miniThead = `<tr>
+        <th>ক্রমিক</th>
+        <th>দাগ নম্বর</th>
+        <th>জমির পরিমাণ (${unitLabelText})</th>
+        <th>কর্তনকৃত জমি (বিস্তারিত)</th>
+        <th>মোট কর্তনকৃত জমি (${unitLabelText})</th>
+        <th>অবশিষ্ট জমি (${unitLabelText})</th>
+      </tr>`;
+    } else {
+      miniThead = `
+        <tr>
+          <th rowspan="2" style="text-align:center;">ক্রমিক</th>
+          <th rowspan="2" style="text-align:center;">দাগ নম্বর</th>
+          <th rowspan="2">জমির পরিমাণ (${unitLabelText})</th>
+          <th colspan="${rec.kortonCols.length}" style="text-align:center; background:var(--surface-3); font-weight:700; color:var(--primary);">হোল্ডিং অনুযায়ী কর্তন</th>
+          <th rowspan="2">মোট কর্তনকৃত জমি (${unitLabelText})</th>
+          <th rowspan="2">অবশিষ্ট জমি (${unitLabelText})</th>
+        </tr>
+        <tr>
+          ${rec.kortonCols.map(c => `<th style="text-align:center; font-size:11.5px;">${toBn(c.holdingNo || '—')}</th>`).join('')}
+        </tr>
+      `;
+    }
+
+    let miniTbody = rec.dagRows.map((r, i) => {
+      let rHtml = `<tr>
+        <td>${bnInt(i+1)}</td>
+        <td>${toBn(r.dagNo)}</td>
+        <td>${bnNum(parseNum(r.area))}</td>`;
+
+      if(hasCols){
+        rec.kortonCols.forEach(c => {
+          const val = r.kortonByHolding && r.kortonByHolding[c.id] ? parseNum(r.kortonByHolding[c.id]) : 0;
+          rHtml += `<td style="color:var(--danger);">${val > 0 ? bnNum(val) : '—'}</td>`;
+        });
+      } else {
+        rHtml += `<td>${kortonList(r.korton).map(v=>bnNum(parseFloat(v)||0)).join(', ')||'—'}</td>`;
+      }
+
+      rHtml += `
+        <td style="color:var(--danger);">${bnNum(getRowTotalKorton(r))}</td>
+        <td>${bnNum(remainingArea(r))}</td>
+      </tr>`;
+      return rHtml;
+    }).join('');
+
+    let miniTfoot = `<tr>
+      <td colspan="2">সর্বমোট:</td>
+      <td style="font-weight:bold; color:var(--ink);">${bnNum(t.area)}</td>`;
+
+    if(hasCols){
+      rec.kortonCols.forEach(c => {
+        let colSum = 0;
+        rec.dagRows.forEach(r => {
+          if(r.kortonByHolding && r.kortonByHolding[c.id]) colSum += parseNum(r.kortonByHolding[c.id]);
+        });
+        miniTfoot += `<td style="color:var(--danger); font-weight:bold;">${bnNum(cleanDecimal(colSum))}</td>`;
+      });
+    } else {
+      miniTfoot += `<td>—</td>`;
+    }
+
+    miniTfoot += `
+      <td style="color:var(--danger); font-weight:bold;">${bnNum(t.korton)}</td>
+      <td style="font-weight:bold;">${bnNum(t.remain)}</td>
+    </tr>`;
+
+    card.innerHTML=`
+      <div class="holding-head">
+        <div class="holding-head-left">
+          <div class="holding-serial-badge" title="ক্রমিক নম্বর">${serialNo}</div>
+          <div>
+            <div class="holding-title">হোল্ডিং নং ${toBn(rec.holdingNo)}</div>
+            <div class="holding-meta">${rec.khatian?'খতিয়ান: '+toBn(rec.khatian)+' | ':''}একক: <strong style="color:var(--primary);">${unitLabelText}</strong></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="holding-figs">
+            <div class="fig"><div class="n">${bnInt(rec.dagRows.length)}</div><div class="l">দাগ</div></div>
+            <div class="fig"><div class="n">${bnNum(t.area)}</div><div class="l">মোট ${unitLabelText}</div></div>
+            <div class="fig"><div class="n">${bnNum(t.korton)}</div><div class="l">মোট কর্তন</div></div>
+            <div class="fig"><div class="n">${bnNum(t.remain)}</div><div class="l">অবশিষ্ট</div></div>
+          </div>
+          <svg class="holding-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="holding-body" id="body_${rec.id}">
+        <table class="dagno-mini">
+          <thead>${miniThead}</thead>
+          <tbody>${miniTbody}</tbody>
+          <tfoot>${miniTfoot}</tfoot>
+        </table>
+        <div class="btn-row">
+          <button class="btn ghost" data-edit="${rec.id}">✎ সম্পাদনা</button>
+          <button class="btn gold-btn" data-pdf="${rec.id}">⎙ প্রিন্ট</button>
+          <button class="btn navy" data-excel="${rec.id}" title="শুধুমাত্র এই হোল্ডিং .xlsx ফাইলে ডাউনলোড করুন">এক্সেল (.xlsx)</button>
+          <button class="btn danger" data-del="${rec.id}">✕ মুছুন</button>
+        </div>
+      </div>
+    `;
+    const head=card.querySelector('.holding-head');
+    head.addEventListener('click',()=>{
+      const body=card.querySelector('.holding-body');
+      const isOpen=body.classList.contains('open');
+      document.querySelectorAll('.holding-body.open').forEach(b=>b.classList.remove('open'));
+      document.querySelectorAll('.holding-head.open').forEach(h=>h.classList.remove('open'));
+      if(!isOpen){ body.classList.add('open'); head.classList.add('open'); }
+    });
+    card.querySelector('[data-edit]').addEventListener('click',e=>{ e.stopPropagation(); editHolding(rec); });
+    card.querySelector('[data-del]').addEventListener('click',e=>{ e.stopPropagation(); deleteHolding(rec.id); });
+    card.querySelector('[data-pdf]').addEventListener('click',e=>{ e.stopPropagation(); printHolding(rec); });
+    card.querySelector('[data-excel]').addEventListener('click',e=>{ e.stopPropagation(); exportSingleHoldingExcel(rec); });
+    holdingsList.appendChild(card);
+  });
+}
+
+let allRecords=[];
+document.getElementById('searchBox').addEventListener('input',e=>{
+  const q=toEn(e.target.value.trim()).toLowerCase();
+  if(!q){ renderHoldingsList(allRecords); return; }
+  const filtered=allRecords.filter(rec=>{ const hay=toEn([rec.holdingNo,rec.khatian,...rec.dagRows.map(r=>r.dagNo)].join(' ')).toLowerCase(); return hay.includes(q); });
+  renderHoldingsList(filtered);
+});
+
+async function loadAll(){
+  try{
+    const listRes=await storage.list('holding:',false);
+    const keys=(listRes&&listRes.keys)||[];
+    const records=[];
+    for(const k of keys){
+      try{ const r=await storage.get(k,false); if(r&&r.value) records.push(JSON.parse(r.value)); }catch(e){}
+    }
+    allRecords=records;
+    renderHoldingsList(records);
+    document.getElementById('searchBox').value='';
+  }catch(err){
+    console.error(err);
+    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
+  }
+}
+
+dagRows=[newDagRow()];
+renderDagTable();
+loadAll();
