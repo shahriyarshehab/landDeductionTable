@@ -1341,12 +1341,12 @@ tr.row-warning td {
   50% { opacity: 0.82; transform: scale(0.98); }
 }
 
-/* 2. VISUAL PLOT PROGRESS BAR */
+/* 2. VISUAL PLOT PROGRESS BAR & MINI SAVED CARD BAR */
 .plot-progress-wrap {
-  margin-top: 6px;
+  margin-top: 5px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .plot-progress-bar {
   width: 100%;
@@ -1360,7 +1360,7 @@ tr.row-warning td {
   height: 100%;
   background: linear-gradient(90deg, var(--primary), var(--accent));
   border-radius: 4px;
-  transition: width 0.5s ease-in-out;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .plot-progress-fill.overdrawn {
   background: linear-gradient(90deg, var(--danger), #FF7A85) !important;
@@ -1368,13 +1368,46 @@ tr.row-warning td {
 .plot-progress-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--ink-soft);
 }
 
-/* 3. TOOLBAR BACKUP & RESTORE BUTTONS */
-.btn-backup, .btn-restore, .btn-pwa {
+/* COMPACT MINI PROGRESS BAR FOR SAVED HOLDINGS CARD ROWS */
+.mini-plot-progress-wrap {
+  margin-top: 3px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 110px;
+}
+.mini-plot-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mini-plot-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.mini-plot-progress-fill.overdrawn {
+  background: linear-gradient(90deg, var(--danger), #FF7A85) !important;
+}
+.mini-plot-progress-text {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: right;
+  line-height: 1;
+}
+
+/* 3. TOOLBAR PWA BUTTON */
+.btn-pwa {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1389,7 +1422,7 @@ tr.row-warning td {
   touch-action: manipulation;
   transition: all 0.25s ease;
 }
-.btn-backup:hover, .btn-restore:hover, .btn-pwa:hover {
+.btn-pwa:hover {
   background: var(--primary-light);
   color: var(--primary);
   border-color: var(--primary);
@@ -1398,7 +1431,7 @@ tr.row-warning td {
 
 /* 4. MOBILE TOUCH TARGET & RESPONSIVE OPTIMIZATION */
 @media (max-width: 600px) {
-  .btn-backup, .btn-restore, .btn-pwa {
+  .btn-pwa {
     padding: 8px 10px;
     font-size: 11px;
   }
@@ -1419,4 +1452,5 @@ tr.row-warning td {
   .motto {
     font-size: 11.5px;
   }
-}
+}
+

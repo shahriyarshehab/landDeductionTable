@@ -31,9 +31,9 @@ The codebase follows a clean, modular folder hierarchy separating markup, stylin
 landDeductionTable/
 ├── 📄 index.html            # Primary application entry point
 ├── 🎨 css/
-│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), over-deduction & responsive CSS
+│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), over-deduction & progress bar CSS
 ├── ⚡ js/
-│   └── 📄 app.js            # Math engine, JSON backup/restore, PWA handlers & LocalStorage
+│   └── 📄 app.js            # Math engine, real-time ratio bar calculations, PWA handlers & LocalStorage
 ├── ⚙️ sw.js                 # PWA Service Worker for 100% offline caching
 ├── 📱 manifest.json        # Web App Manifest for mobile installation
 ├── 🖼️ assets/
@@ -46,24 +46,21 @@ landDeductionTable/
 
 ## ✨ Key Features (v4.5 Release)
 
-### 📲 1. Progressive Web App (PWA) & 100% Offline Mobile Operation
+### 📊 1. Real-Time & Saved Cards Visual Plot Progress Bar
+* **Real-Time Keystroke Calculation**: Displays an animated gradient progress bar comparing **Deducted Land %** vs **Remaining Land %** in real-time as users type.
+* **Compact Saved Cards Indicator**: Renders a sleek mini ratio bar on every saved holding card row (`.mini-plot-progress-bar`).
+
+### ⚠️ 2. Over-Deduction Neon Warning System
+* **Automatic Over-Deduction Alert**: Detects if total deduction exceeds total plot land area and highlights the row in glowing neon red with a `⚠️ অতি-কর্তন!` alert badge.
+
+### 📲 3. Progressive Web App (PWA) & 100% Offline Mobile Operation
 * **Add to Home Screen**: Installable as a standalone native app on Android, iOS, and Desktop devices with `manifest.json`.
 * **Service Worker Caching (`sw.js`)**: Runs 100% offline in rural areas with zero internet connectivity.
 
-### 💾 2. JSON Data Backup & Instant Restore
-* **JSON Export**: Downloads all stored holdings, active plots, tags, and settings into a timestamped `.json` file (`ldd4ig-land-backup-YYYY-MM-DD.json`).
-* **JSON Restore**: Instantly restores previous backup data onto any device without data loss.
-
-### ⚠️ 3. Over-Deduction Neon Warning System
-* **Automatic Over-Deduction Alert**: Detects if total deduction exceeds total plot land area and highlights the row in glowing neon red with a `⚠️ অতি-কর্তন!` alert badge.
-
-### 📊 4. Visual Land Plot Progress Bar
-* **Visual Ratio Bar**: Displays a dynamic gradient progress bar on each plot row comparing **Deducted Land %** vs **Remaining Land %**.
-
-### 📱 5. Mobile-First Touch Optimization
+### 📱 4. Mobile-First Touch Optimization
 * Enlarged touch target heights (min 44px) for effortless mobile operation, smooth horizontal table scrolling, and touch-friendly controls.
 
-### 🌅 6. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
+### 🌅 5. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
 * Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties and `@supports` minimal fallback mode.
 
 ---
@@ -75,7 +72,6 @@ landDeductionTable/
 | **Frontend UI** | HTML5 / CSS3 Tokens | Modular components, CSS variables, glassmorphism, responsive grid |
 | **Logic & Math** | JavaScript (ES6+) | Precise decimal arithmetic engine & Bangla digit parsing (`BN_DIGITS`) |
 | **Offline App** | PWA Service Worker | Caches shell & assets for 100% offline availability |
-| **Backup/Restore** | Web File API & Blob JSON | Formatted client-side `.json` data serialization & deserialization |
 | **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation |
 
 ---
@@ -87,8 +83,7 @@ landDeductionTable/
 | **Next Cell Entry** | <kbd>Tab</kbd> or <kbd>Enter</kbd> | Move focus seamlessly across Khatian, Holding, Dag, and Land cells |
 | **Auto Row Addition** | <kbd>Enter</kbd> in last deduction cell | Automatically appends a new Plot (দাগ) row for high-speed data entry |
 | **Deduction Math** | `১.৫০+০.৫০` or `১, ২, ৩` | Automatically computes totals and updates remaining land balance |
-| **Data Backup** | Click **💾 ব্যাকআপ** | Downloads `.json` backup file of all saved holdings |
-| **Data Restore** | Click **📂 রিস্টোর** | Selects previous `.json` backup file and restores data |
+| **Column Split** | Click **'হোল্ডিং অনুযায়ী কর্তন'** | Expands multi-value entries into dedicated holding columns |
 
 ---
 

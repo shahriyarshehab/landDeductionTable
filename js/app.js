@@ -544,12 +544,34 @@ function updateRowRemain(i){
   const kortonTotalCell=document.getElementById('kortonTotal_'+i);
   const kSum = getRowTotalKorton(dagRows[i]);
   const remain = remainingArea(dagRows[i]);
+  const totalAreaNum = parseFloat(toEn(dagRows[i].area)) || 0;
+  const isOverdrawn = remain < 0 && totalAreaNum > 0;
+
+  const tr = remainCell ? remainCell.closest('tr') : null;
+  if (tr) {
+    tr.classList.toggle('row-warning', isOverdrawn);
+  }
 
   if(kortonTotalCell) {
     kortonTotalCell.textContent = bnNum(kSum);
   }
   if(remainCell) {
-    remainCell.textContent = bnNum(remain);
+    const pctDeducted = totalAreaNum > 0 ? (kSum / totalAreaNum) * 100 : 0;
+    const progressBarHtml = totalAreaNum > 0 ? `
+      <div class="plot-progress-wrap">
+        <div class="plot-progress-bar">
+          <div class="plot-progress-fill ${isOverdrawn ? 'overdrawn' : ''}" style="width: ${Math.min(100, Math.max(0, pctDeducted))}%;"></div>
+        </div>
+        <div class="plot-progress-meta">
+          <span>${isOverdrawn ? '⚠️ অতি-কর্তন!' : `${bnNum(pctDeducted.toFixed(1))}% কর্তন`}</span>
+        </div>
+      </div>
+    ` : '';
+
+    remainCell.innerHTML = `
+      ${bnNum(remain)}
+      ${progressBarHtml}
+    `;
     remainCell.classList.toggle('neg', remain < 0);
   }
 }
@@ -1114,7 +1136,22 @@ function renderHoldingsList(records){
     }
 
     let miniTbody = rec.dagRows.map((r, i) => {
-      let rHtml = `<tr>
+      const rowKortonSum = getRowTotalKorton(r);
+      const remArea = remainingArea(r);
+      const totalAreaNum = parseFloat(toEn(r.area)) || 0;
+      const isOverdrawn = remArea < 0 && totalAreaNum > 0;
+      const pctDeducted = totalAreaNum > 0 ? (rowKortonSum / totalAreaNum) * 100 : 0;
+
+      const miniProgressBarHtml = totalAreaNum > 0 ? `
+        <div class="mini-plot-progress-wrap">
+          <div class="mini-plot-progress-bar">
+            <div class="mini-plot-progress-fill ${isOverdrawn ? 'overdrawn' : ''}" style="width: ${Math.min(100, Math.max(0, pctDeducted))}%;"></div>
+          </div>
+          <div class="mini-plot-progress-text">${isOverdrawn ? '⚠️ অতি-কর্তন' : `${bnNum(pctDeducted.toFixed(1))}%`}</div>
+        </div>
+      ` : '';
+
+      let rHtml = `<tr class="${isOverdrawn ? 'row-warning' : ''}">
         <td>${bnInt(i+1)}</td>
         <td>${toBn(r.dagNo)}</td>
         <td>${bnNum(parseNum(r.area))}</td>`;
@@ -1129,8 +1166,11 @@ function renderHoldingsList(records){
       }
 
       rHtml += `
-        <td style="color:var(--danger);">${bnNum(getRowTotalKorton(r))}</td>
-        <td>${bnNum(remainingArea(r))}</td>
+        <td style="color:var(--danger);">${bnNum(rowKortonSum)}</td>
+        <td>
+          ${bnNum(remArea)}
+          ${miniProgressBarHtml}
+        </td>
       </tr>`;
       return rHtml;
     }).join('');
@@ -1263,101 +1303,8 @@ function triggerPWAInstall() {
   }
 }
 
-/* ── 2. JSON DATA BACKUP & RESTORE ── */
-async function exportJSONBackup() {
-  try {
-    const listRes = await storage.list('holding:', false);
-    const keys = (listRes && listRes.keys) || [];
-    const holdingsData = [];
-    for (const k of keys) {
-      try {
-        const r = await storage.get(k, false);
-        if (r && r.value) holdingsData.push(JSON.parse(r.value));
-      } catch (e) {}
-    }
-    const backupObj = {
-      app: 'LDD4IG Land Deduction Table',
-      version: 'v4.5',
-      exportDate: new Date().toISOString(),
-      currentDraft: {
-        holdingNo: document.getElementById('holdingNoInput').value,
-        khatian: document.getElementById('khatianInput').value,
-        mouja: document.getElementById('moujaInput').value,
-        jlNo: document.getElementById('jlNoInput').value,
-        areaUnit: areaUnit,
-        dagRows: dagRows,
-        kortonCols: kortonCols
-      },
-      savedHoldings: holdingsData
-    };
-    const jsonStr = JSON.stringify(backupObj, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const today = new Date().toISOString().split('T')[0];
-    a.href = url;
-    a.download = `ldd4ig-land-backup-${today}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('সকল ডেটা সফলভাবে .json ফাইলে ডাউনলোড ব্যাকআপ নেওয়া হয়েছে! 💾');
-  } catch (err) {
-    console.error(err);
-    toast('ব্যাকআপ জেনারেট করতে সমস্যা হয়েছে', true);
-  }
-}
-
-async function importJSONBackup(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.savedHoldings && !data.currentDraft) {
-        throw new Error('অবৈধ ব্যাকআপ ফাইল ফরম্যাট');
-      }
-      if (data.savedHoldings && Array.isArray(data.savedHoldings)) {
-        for (const item of data.savedHoldings) {
-          if (item.id) {
-            await storage.set(`holding:${item.id}`, JSON.stringify(item), false);
-          }
-        }
-      }
-      if (data.currentDraft) {
-        const d = data.currentDraft;
-        if (d.holdingNo) document.getElementById('holdingNoInput').value = d.holdingNo;
-        if (d.khatian) document.getElementById('khatianInput').value = d.khatian;
-        if (d.mouja) document.getElementById('moujaInput').value = d.mouja;
-        if (d.jlNo) document.getElementById('jlNoInput').value = d.jlNo;
-        if (d.areaUnit) setAreaUnit(d.areaUnit);
-        if (d.dagRows) dagRows = d.dagRows;
-        if (d.kortonCols) kortonCols = d.kortonCols;
-        renderDagTable();
-        calcTotals();
-      }
-      await loadAll();
-      toast('ব্যাকআপ ফাইল থেকে সফলভাবে ডেটা রিস্টোর করা হয়েছে! 🎉');
-    } catch (err) {
-      console.error(err);
-      toast('ব্যাকআপ ফাইলটি রিস্টোর করা সম্ভব হয়নি: ' + err.message, true);
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-// Bind Backup & Restore Button Listeners
 document.addEventListener('DOMContentLoaded', () => {
-  const backupBtn = document.getElementById('btnExportBackup');
-  const restoreBtn = document.getElementById('btnRestoreBackup');
-  const restoreInput = document.getElementById('jsonRestoreInput');
   const pwaBtn = document.getElementById('btnInstallPWA');
-
-  if (backupBtn) backupBtn.addEventListener('click', exportJSONBackup);
-  if (restoreBtn) restoreBtn.addEventListener('click', () => restoreInput && restoreInput.click());
-  if (restoreInput) restoreInput.addEventListener('change', importJSONBackup);
   if (pwaBtn) pwaBtn.addEventListener('click', triggerPWAInstall);
 });
 
