@@ -261,6 +261,27 @@ html[data-theme="dark"] .seal{
   background:var(--primary);
 }
 
+/* ── FLOATING TOP-RIGHT CORNER THEME SWITCHER ── */
+.floating-top-theme {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+}
+.floating-top-theme .theme-switch-btn {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-card);
+}
+@media(max-width:540px){
+  .floating-top-theme {
+    top: 10px;
+    right: 10px;
+  }
+}
+
 /* ── COMPACT PURE ICON SUNRISE & SUNSET ANIMATED THEME SWITCHER (NO TEXT) ── */
 .theme-switch-btn{
   position:relative;

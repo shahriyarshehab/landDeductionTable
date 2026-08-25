@@ -25,6 +25,41 @@
     <span class="partner-name">UNDP Bangladesh</span>
   </div>
 
+  <!-- FLOATING TOP-RIGHT CORNER THEME SWITCHER WIDGET -->
+  <div class="floating-top-theme">
+    <button class="theme-switch-btn" id="themeToggle" data-tip="থিম পরিবর্তন: সূর্যোদয় ও সূর্যাস্ত" aria-label="থিম পরিবর্তন">
+      <div class="sky-track" id="skyTrack">
+        <div class="celestial-thumb" id="celestialThumb">
+          <!-- Sun for Day / Sunrise (Left) -->
+          <div class="celestial-body sun-body">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4.5" fill="#FFB703" stroke="#FB8500"/>
+              <g class="sun-rays" stroke="#FB8500">
+                <line x1="12" y1="1.5" x2="12" y2="4"/>
+                <line x1="12" y1="20" x2="12" y2="22.5"/>
+                <line x1="4.5" y1="4.5" x2="6.3" y2="6.3"/>
+                <line x1="17.7" y1="17.7" x2="19.5" y2="19.5"/>
+                <line x1="1.5" y1="12" x2="4" y2="12"/>
+                <line x1="20" y1="12" x2="22.5" y2="12"/>
+                <line x1="4.5" y1="19.5" x2="6.3" y2="17.7"/>
+                <line x1="17.7" y1="6.3" x2="19.5" y2="4.5"/>
+              </g>
+            </svg>
+          </div>
+          <!-- Moon for Night / Sunset (Right) -->
+          <div class="celestial-body moon-body">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#E0F2FE" stroke="#38BDF8"/>
+              <circle cx="16" cy="6" r="0.9" fill="#F8FAFC" opacity="0.8"/>
+              <circle cx="9" cy="9" r="0.7" fill="#F8FAFC" opacity="0.6"/>
+              <circle cx="15" cy="17" r="0.8" fill="#F8FAFC" opacity="0.7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </button>
+  </div>
+
   <!-- HEADER (RELEVANT LAND DATA EMBLEM & OFFICIAL MOTTO) -->
   <header class="hd">
     <div class="brand">
@@ -45,42 +80,9 @@
       </div>
     </div>
     
-    <!-- PURE ICON HORIZONTAL SUNRISE / SUNSET ANIMATED THEME SWITCHER (NO TEXT) -->
     <div class="header-actions">
       <!-- USER AUTHENTICATION PROFILE WIDGET -->
       <div id="userProfileWidget" class="user-profile-widget"></div>
-
-      <button class="theme-switch-btn" id="themeToggle" data-tip="থিম পরিবর্তন: সূর্যোদয় ও সূর্যাস্ত" aria-label="থিম পরিবর্তন">
-        <div class="sky-track" id="skyTrack">
-          <div class="celestial-thumb" id="celestialThumb">
-            <!-- Sun for Day / Sunrise (Left) -->
-            <div class="celestial-body sun-body">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4.5" fill="#FFB703" stroke="#FB8500"/>
-                <g class="sun-rays" stroke="#FB8500">
-                  <line x1="12" y1="1.5" x2="12" y2="4"/>
-                  <line x1="12" y1="20" x2="12" y2="22.5"/>
-                  <line x1="4.5" y1="4.5" x2="6.3" y2="6.3"/>
-                  <line x1="17.7" y1="17.7" x2="19.5" y2="19.5"/>
-                  <line x1="1.5" y1="12" x2="4" y2="12"/>
-                  <line x1="20" y1="12" x2="22.5" y2="12"/>
-                  <line x1="4.5" y1="19.5" x2="6.3" y2="17.7"/>
-                  <line x1="17.7" y1="6.3" x2="19.5" y2="4.5"/>
-                </g>
-              </svg>
-            </div>
-            <!-- Moon for Night / Sunset (Right) -->
-            <div class="celestial-body moon-body">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="#E0F2FE" stroke="#38BDF8"/>
-                <circle cx="16" cy="6" r="0.9" fill="#F8FAFC" opacity="0.8"/>
-                <circle cx="9" cy="9" r="0.7" fill="#F8FAFC" opacity="0.6"/>
-                <circle cx="15" cy="17" r="0.8" fill="#F8FAFC" opacity="0.7"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </button>
     </div>
   </header>
 
