@@ -23,6 +23,28 @@
 > [!IMPORTANT]
 > **LMAP (Land Management Automation Project)** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা এবং দাগ-ভিত্তিক জমির কর্তন হিসাব রিয়েল-টাইমে পরিচালনার জন্য তৈরি একটি আধুনিক, স্ট্রিক্ট-প্রাইভেসি এনক্রিপ্টেড ওয়েব অ্যাপ্লিকেশন। অ্যাপটিতে **Supabase PostgreSQL Cloud DB**, **Render.com Node.js API** এবং **Vercel Frontend Hosting** আর্কিটেকচার যুক্ত করা হয়েছে।
 
+## 💻 Local Development Server Guide (লোকাল সারভারে রান করার নিয়ম)
+
+ল্যাপটপ বা পিসিতে কোনো থার্ড-পার্টি ডিপেনডেন্সি ছাড়াই **১-ক্লিকে লোকাল ওয়েব সার্ভারে** প্রজেক্টটি চালু করতে নিচের যেকোনো পদ্ধতি ব্যবহার করুন:
+
+### ⚡ পদ্ধতি ১: NPM কমান্ড দিয়ে (NPM Command)
+```bash
+npm start
+# অথবা
+npm run serve
+```
+
+### ⚡ পদ্ধতি ২: Node.js সরাসরি রান করে (Node Direct Execution)
+```bash
+node server.js
+```
+
+### ⚡ পদ্ধতি ৩: উইন্ডোজ ১-ক্লিক লঞ্চার (Windows Double-Click Launcher)
+* প্রজেক্ট ফোল্ডারে থাকা **`start-server.bat`** অথবা **`start-server.ps1`** ফাইলে ডাবল-ক্লিক করলেই ব্রাউজারে `http://localhost:3000` পোর্টে সার্ভার স্বয়ংক্রিয়ভাবে খুলে যাবে।
+
+> [!TIP]
+> লোকাল সার্ভারে রান করলে `http://localhost:3000` এড্রেসে রেসপন্সিভ হাই-স্পিড লোডিং, সেশন মেমোরি ও ফুল ফিচার এক্সেস পাওয়া যাবে।
+
 ---
 
 ## ☁️ Cloud Server & Database Deployment Guide

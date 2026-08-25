@@ -1,0 +1,21 @@
+{
+  "name": "land-deduction-table-lmap",
+  "version": "2.5.0",
+  "description": "Land Management Automation Project (LMAP) - Land Area Deduction & Khatian Management System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "serve": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "lmap",
+    "land-ministry",
+    "undp",
+    "land-deduction",
+    "khatian",
+    "bangladesh"
+  ],
+  "author": "Shahriyar Shehab <kshahriyar28@gmail.com>",
+  "license": "MIT"
+}
