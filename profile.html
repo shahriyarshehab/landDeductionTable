@@ -161,6 +161,79 @@
     </div>
   </div>
 
+  <!-- EXCLUSIVE ADMIN SYSTEM DASHBOARD SECTION (ONLY FOR ADMIN ROLE) -->
+  <div id="adminDashboardSection" style="display:none;" class="profile-holdings-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h3 style="font-size:20px; font-weight:800; color:var(--primary); margin:0;">
+          👑 এডমিন সিস্টেম ড্যাশবোর্ড (Admin Dashboard)
+        </h3>
+        <p style="font-size:12px; color:var(--ink-soft); margin-top:3px;">
+          সিস্টেমের গ্লোবাল তথ্য ওভারভিউ, ইউজার ডাটাবেজ এবং এডমিন কন্ট্রোল সেন্টার
+        </p>
+      </div>
+      <a href="admin.html" class="btn primary btn-sm" style="text-decoration:none; font-weight:700;">
+        এডমিন কন্ট্রোল সেন্টার ➔
+      </a>
+    </div>
+
+    <!-- ADMIN METRICS GRID -->
+    <div class="analytics-grid" style="margin-bottom:20px;">
+      <div class="stat-big-card">
+        <div class="stat-big-val" id="dashTotalUsers">০</div>
+        <div class="stat-big-lbl">নিবন্ধিত ইউজারবৃন্দ</div>
+      </div>
+      <div class="stat-big-card">
+        <div class="stat-big-val" id="dashTotalHoldings">০</div>
+        <div class="stat-big-lbl">মোট গ্লোবাল হোল্ডিং</div>
+      </div>
+      <div class="stat-big-card">
+        <div class="stat-big-val" id="dashTotalPlots">০</div>
+        <div class="stat-big-lbl">ক্যাডাস্ট্রাল দাগ সংখ্যা</div>
+      </div>
+      <div class="stat-big-card">
+        <div class="stat-big-val" id="dashTotalArea">০.০০</div>
+        <div class="stat-big-lbl">মোট রেকর্ড জমি (শতক)</div>
+      </div>
+    </div>
+
+    <!-- ADMIN QUICK ACTION TOOLBAR -->
+    <div class="btn-row" style="flex-wrap:wrap; gap:10px;">
+      <button type="button" class="btn ghost btn-sm" onclick="openAnalyticsModal()">
+        📊 অ্যানালিটিক্স রিপোর্ট
+      </button>
+      <button type="button" class="btn ghost btn-sm" onclick="exportJsonBackup()">
+        📥 JSON ব্যাকআপ ফাইল
+      </button>
+      <button type="button" class="btn ghost btn-sm" onclick="openAuditLogModal()">
+        📜 সিকিউরিটি অডিট লগ
+      </button>
+    </div>
+  </div>
+
+  <!-- USER PRIVATE HOLDINGS LIST -->
+  <div class="profile-holdings-card">
+    <h3 style="font-size:18px; margin-bottom:14px; border-bottom:1px solid var(--line); padding-bottom:8px;">
+      📂 আমার এন্ট্রি করা সংরক্ষিত হোল্ডিংসমূহ (<span id="myHoldingsListCount">০</span>)
+    </h3>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>হোল্ডিং নং</th>
+            <th>খতিয়ান নং</th>
+            <th>মোট জমি</th>
+            <th>কর্তন জমি</th>
+            <th>অবশিষ্ট জমি</th>
+          </tr>
+        </thead>
+        <tbody id="myHoldingsTableBody">
+          <!-- Dynamically rendered -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- EDIT PROFILE FORM SECTION -->
   <div class="profile-holdings-card">
     <h3 style="font-size:18px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:8px;">
@@ -211,13 +284,13 @@
 
 <script src="js/app.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     if (!currentUser) {
       window.location.href = 'login.html';
       return;
     }
 
-    // Populate Page Elements
+    // Populate User Details
     const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
     document.getElementById('pageAvatar').textContent = initial;
     document.getElementById('pageUserName').textContent = currentUser.name || 'ইউজার';
@@ -226,8 +299,76 @@
     document.getElementById('pageUserUsername').textContent = currentUser.username || currentUser.email || '—';
     document.getElementById('pageUserCreated').textContent = currentUser.createdAt ? currentUser.createdAt.split('T')[0] : '২০২৬-০৮-২৫';
 
+    // Filter Admin's / User's OWN Holdings
+    const myHoldings = allRecords.filter(r => r.createdBy && (
+      (r.createdBy.username && r.createdBy.username.toLowerCase() === (currentUser.username || '').toLowerCase()) ||
+      (r.createdBy.id && r.createdBy.id === currentUser.id)
+    ));
+
+    let myPlots = 0;
+    let myArea = 0;
+    myHoldings.forEach(r => {
+      if (r.dagRows) myPlots += r.dagRows.length;
+      const t = holdingTotals(r);
+      myArea += t.area;
+    });
+
+    document.getElementById('pageHoldingsCount').textContent = bnInt(myHoldings.length);
+    document.getElementById('pagePlotsCount').textContent = bnInt(myPlots);
+    document.getElementById('pageAreaCount').textContent = bnNum(cleanDecimal(myArea));
+
+    // Render User's Private Holdings Table
+    const tbody = document.getElementById('myHoldingsTableBody');
+    const hCount = document.getElementById('myHoldingsListCount');
+    if (hCount) hCount.textContent = bnInt(myHoldings.length);
+
+    if (myHoldings.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px; color:var(--ink-soft);">আপনার কোনো সংরক্ষিত হোল্ডিং ডাটা নেই</td></tr>`;
+    } else {
+      tbody.innerHTML = myHoldings.map(r => {
+        const t = holdingTotals(r);
+        return `
+          <tr>
+            <td><strong>${toBn(r.holdingNo)}</strong></td>
+            <td>${toBn(r.khatian || '—')}</td>
+            <td>${bnNum(cleanDecimal(t.area))} শতক</td>
+            <td>${bnNum(cleanDecimal(t.korton))} শতক</td>
+            <td><strong>${bnNum(cleanDecimal(t.rem))} শতক</strong></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ADMIN DASHBOARD FEATURE VISIBILITY CONTROLLER
+    const adminDash = document.getElementById('adminDashboardSection');
     if (currentUser.role === 'Admin') {
+      if (adminDash) adminDash.style.display = 'block';
       document.getElementById('btnPageOpenAdmin').style.display = 'inline-flex';
+
+      // Populate Admin Metrics
+      const uCount = document.getElementById('dashTotalUsers');
+      if (uCount) uCount.textContent = bnInt(registeredUsersDB.length);
+
+      const hGlobal = document.getElementById('dashTotalHoldings');
+      if (hGlobal) hGlobal.textContent = bnInt(allRecords.length);
+
+      let gPlots = 0;
+      let gArea = 0;
+      allRecords.forEach(r => {
+        if (r.dagRows) gPlots += r.dagRows.length;
+        const t = holdingTotals(r);
+        gArea += t.area;
+      });
+
+      const pGlobal = document.getElementById('dashTotalPlots');
+      if (pGlobal) pGlobal.textContent = bnInt(gPlots);
+
+      const aGlobal = document.getElementById('dashTotalArea');
+      if (aGlobal) aGlobal.textContent = bnNum(cleanDecimal(gArea));
+
+    } else {
+      if (adminDash) adminDash.style.display = 'none';
+      document.getElementById('btnPageOpenAdmin').style.display = 'none';
     }
 
     // Populate Edit Fields
