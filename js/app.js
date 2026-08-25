@@ -618,6 +618,22 @@ async function saveHolding(){
   });
 
   const id=editingId||('h_'+Date.now());
+  
+  let creatorInfo = currentUser ? {
+    id: currentUser.id,
+    username: currentUser.username,
+    name: currentUser.name,
+    role: currentUser.role,
+    office: currentUser.office || ''
+  } : null;
+
+  if (editingId) {
+    const existingRec = allRecords.find(r => r.id === editingId);
+    if (existingRec && existingRec.createdBy) {
+      creatorInfo = existingRec.createdBy;
+    }
+  }
+
   const record={
     id,
     khatian,
@@ -625,7 +641,8 @@ async function saveHolding(){
     areaUnit,
     kortonCols: kortonCols.map(c => ({ ...c })),
     dagRows: savedRows,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    createdBy: creatorInfo
   };
 
   try{
@@ -1145,7 +1162,10 @@ function renderHoldingsList(records){
           <div class="holding-serial-badge" title="ক্রমিক নম্বর">${serialNo}</div>
           <div>
             <div class="holding-title">হোল্ডিং নং ${toBn(rec.holdingNo)}</div>
-            <div class="holding-meta">${rec.khatian?'খতিয়ান: '+toBn(rec.khatian)+' | ':''}একক: <strong style="color:var(--primary);">${unitLabelText}</strong></div>
+            <div class="holding-meta">
+              ${rec.khatian?'খতিয়ান: '+toBn(rec.khatian)+' | ':''}একক: <strong style="color:var(--primary);">${unitLabelText}</strong>
+              ${rec.createdBy ? ` &nbsp;|&nbsp; <span class="holding-owner-badge">👤 এন্ট্রি: <strong>${toBn(rec.createdBy.name)}</strong> (${rec.createdBy.role})</span>` : ''}
+            </div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
@@ -1189,11 +1209,73 @@ function renderHoldingsList(records){
 }
 
 let allRecords=[];
-document.getElementById('searchBox').addEventListener('input',e=>{
-  const q=toEn(e.target.value.trim()).toLowerCase();
-  if(!q){ renderHoldingsList(allRecords); return; }
-  const filtered=allRecords.filter(rec=>{ const hay=toEn([rec.holdingNo,rec.khatian,...rec.dagRows.map(r=>r.dagNo)].join(' ')).toLowerCase(); return hay.includes(q); });
+let userFilterMode = 'my'; // 'my' vs 'all'
+
+function applyUserFilter(records) {
+  const myDataCountEl = document.getElementById('myDataCount');
+  const allDataCountEl = document.getElementById('allDataCount');
+  const noticeEl = document.getElementById('userFilterNotice');
+
+  const myRecords = records.filter(r => currentUser && r.createdBy && r.createdBy.username === currentUser.username);
+  
+  if (myDataCountEl) myDataCountEl.textContent = bnInt(myRecords.length);
+  if (allDataCountEl) allDataCountEl.textContent = bnInt(records.length);
+
+  const filterMyDataBtn = document.getElementById('filterMyDataBtn');
+  const filterAllDataBtn = document.getElementById('filterAllDataBtn');
+
+  if (!currentUser) {
+    userFilterMode = 'all';
+    if (filterMyDataBtn) filterMyDataBtn.classList.remove('active');
+    if (filterAllDataBtn) filterAllDataBtn.classList.add('active');
+    if (noticeEl) noticeEl.textContent = 'সংরক্ষিত সকল ইউজার ডাটা প্রদর্শিত হচ্ছে (লগইন করুন)';
+    return records;
+  }
+
+  if (userFilterMode === 'my') {
+    if (filterMyDataBtn) filterMyDataBtn.classList.add('active');
+    if (filterAllDataBtn) filterAllDataBtn.classList.remove('active');
+    if (noticeEl) noticeEl.textContent = `ইউজার: ${currentUser.name} (${currentUser.role}) — আপনার এন্ট্রি করা তথ্য প্রদর্শিত হচ্ছে (${bnInt(myRecords.length)} টি)`;
+    return myRecords;
+  } else {
+    if (filterMyDataBtn) filterMyDataBtn.classList.remove('active');
+    if (filterAllDataBtn) filterAllDataBtn.classList.add('active');
+    if (noticeEl) noticeEl.textContent = `সকল নিবন্ধিত ইউজারের সংরক্ষিত মোট ${bnInt(records.length)} টি হোল্ডিং প্রদর্শিত হচ্ছে`;
+    return records;
+  }
+}
+
+function refreshListDisplay() {
+  const q = toEn(document.getElementById('searchBox').value.trim()).toLowerCase();
+  const visibleBase = applyUserFilter(allRecords);
+  if (!q) {
+    renderHoldingsList(visibleBase);
+    return;
+  }
+  const filtered = visibleBase.filter(rec => {
+    const hay = toEn([rec.holdingNo, rec.khatian, ...rec.dagRows.map(r => r.dagNo)].join(' ')).toLowerCase();
+    return hay.includes(q);
+  });
   renderHoldingsList(filtered);
+}
+
+document.getElementById('searchBox').addEventListener('input', () => {
+  refreshListDisplay();
+});
+
+document.getElementById('filterMyDataBtn').addEventListener('click', () => {
+  if (!currentUser) {
+    toast('আপনার ডাটা দেখতে প্রথমে লগইন করুন', 'warning');
+    openAuthModal();
+    return;
+  }
+  userFilterMode = 'my';
+  refreshListDisplay();
+});
+
+document.getElementById('filterAllDataBtn').addEventListener('click', () => {
+  userFilterMode = 'all';
+  refreshListDisplay();
 });
 
 async function loadAll(){
@@ -1205,7 +1287,7 @@ async function loadAll(){
       try{ const r=await storage.get(k,false); if(r&&r.value) records.push(JSON.parse(r.value)); }catch(e){}
     }
     allRecords=records;
-    renderHoldingsList(records);
+    refreshListDisplay();
     document.getElementById('searchBox').value='';
   }catch(err){
     console.error(err);
@@ -1217,10 +1299,22 @@ dagRows=[newDagRow()];
 renderDagTable();
 loadAll();
 
-/* ── USER AUTHENTICATION & SESSION CONTROL ENGINE ── */
+/* ── ADVANCED USER AUTHENTICATION, REGISTRATION & PROFILE ENGINE ── */
 let currentUser = null;
+let registeredUsersDB = [];
 
 function initUserAuth() {
+  try {
+    const dbStr = localStorage.getItem('lmap_users_db');
+    if (dbStr) {
+      registeredUsersDB = JSON.parse(dbStr);
+    } else {
+      registeredUsersDB = [];
+    }
+  } catch (e) {
+    registeredUsersDB = [];
+  }
+
   try {
     const storedUser = localStorage.getItem('lmap_active_user');
     if (storedUser) {
@@ -1229,6 +1323,7 @@ function initUserAuth() {
   } catch (e) {
     currentUser = null;
   }
+
   renderUserProfileWidget();
 }
 
@@ -1239,23 +1334,22 @@ function renderUserProfileWidget() {
   if (currentUser) {
     const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
     widget.innerHTML = `
-      <div class="user-badge-card" title="লগইনকৃত ইউজার: ${currentUser.name} (${currentUser.role})">
+      <div class="user-badge-card" id="btnOpenProfileModal" title="ইউজার প্রোফাইল ও একাউন্ট দেখুন">
         <div class="user-avatar-mini">${initial}</div>
         <div class="user-badge-info">
           <span class="user-name-text">${currentUser.name}</span>
           <span class="user-role-badge">${currentUser.role}</span>
         </div>
-        <button class="btn-logout-mini" id="btnLogoutUser" title="লগআউট করুন">✕</button>
       </div>
     `;
-    const btnLogout = document.getElementById('btnLogoutUser');
-    if (btnLogout) {
-      btnLogout.addEventListener('click', logoutUser);
+    const btnProfile = document.getElementById('btnOpenProfileModal');
+    if (btnProfile) {
+      btnProfile.addEventListener('click', openUserProfileModal);
     }
   } else {
     widget.innerHTML = `
       <button class="btn primary btn-auth-login" id="btnOpenAuthModal">
-        🔑 ইউজার লগইন
+        🔑 ইউজার লগইন / রেজিস্টার
       </button>
     `;
     const btnLogin = document.getElementById('btnOpenAuthModal');
@@ -1267,7 +1361,7 @@ function renderUserProfileWidget() {
 
 function requireUserAuth(actionName = 'কাজটি সম্পন্ন করতে') {
   if (currentUser) return true;
-  toast(`🔒 ${actionName} প্রথমে প্রফেশনাল ইউজার হিসেবে লগইন করুন!`, 'warning');
+  toast(`🔒 ${actionName} প্রথমে অফিশিয়াল ইউজার হিসেবে লগইন করুন!`, 'warning');
   openAuthModal();
   return false;
 }
@@ -1275,6 +1369,7 @@ function requireUserAuth(actionName = 'কাজটি সম্পন্ন ক
 function openAuthModal() {
   const authModal = document.getElementById('authModal');
   if (authModal) authModal.classList.add('open');
+  switchAuthTab('login');
 }
 
 function closeAuthModal() {
@@ -1282,37 +1377,192 @@ function closeAuthModal() {
   if (authModal) authModal.classList.remove('open');
 }
 
+function switchAuthTab(tab) {
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+  const loginFormPanel = document.getElementById('loginFormPanel');
+  const registerFormPanel = document.getElementById('registerFormPanel');
+  const authModalTitle = document.getElementById('authModalTitle');
+
+  if (tab === 'login') {
+    if (tabLoginBtn) tabLoginBtn.classList.add('active');
+    if (tabRegisterBtn) tabRegisterBtn.classList.remove('active');
+    if (loginFormPanel) loginFormPanel.style.display = 'block';
+    if (registerFormPanel) registerFormPanel.style.display = 'none';
+    if (authModalTitle) authModalTitle.textContent = 'LMAP প্রফেশনাল ইউজার পোর্টাল';
+  } else {
+    if (tabLoginBtn) tabLoginBtn.classList.remove('active');
+    if (tabRegisterBtn) tabRegisterBtn.classList.add('active');
+    if (loginFormPanel) loginFormPanel.style.display = 'none';
+    if (registerFormPanel) registerFormPanel.style.display = 'block';
+    if (authModalTitle) authModalTitle.textContent = 'নতুন ইউজার একাউন্ট রেজিস্ট্রেশন';
+  }
+}
+
 function loginUser(username, password, role) {
   if (!username || !username.trim()) {
-    toast('অফিসিয়াল ইউজার আইডি ইনপুট দিন', 'error');
+    toast('ইউজার আইডি ইনপুট দিন', 'error');
     return;
   }
-  
-  let displayName = username.trim();
-  if (displayName.includes('@')) {
-    displayName = displayName.split('@')[0];
-  }
-  displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
-  currentUser = {
-    id: 'usr_' + Date.now(),
-    username: username.trim(),
-    name: displayName,
-    role: role || 'Operator',
-    loggedInAt: new Date().toISOString()
-  };
+  const uClean = username.trim().toLowerCase();
+  let existingUser = registeredUsersDB.find(u => u.username.toLowerCase() === uClean);
+  
+  if (existingUser) {
+    currentUser = { ...existingUser };
+  } else {
+    let displayName = username.trim();
+    if (displayName.includes('@')) displayName = displayName.split('@')[0];
+    displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+    currentUser = {
+      id: 'usr_' + Date.now(),
+      username: username.trim(),
+      name: displayName,
+      role: role || 'DMF',
+      office: 'উপজেলা ভূমি অফিস',
+      createdAt: new Date().toISOString()
+    };
+    registeredUsersDB.push(currentUser);
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  }
 
   localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+  userFilterMode = 'my';
   renderUserProfileWidget();
   closeAuthModal();
-  toast(`স্বাগতম ${currentUser.name}! প্রফেশনাল সেশন লগইন সফল হয়েছে 🎉`, 'success');
+  refreshListDisplay();
+  toast(`স্বাগতম ${currentUser.name}! সেশন লগইন সফল হয়েছে 🎉`, 'success');
+}
+
+function registerUser(fullName, username, password, role, office) {
+  if (!fullName.trim() || !username.trim() || !password.trim()) {
+    toast('সকল প্রয়োজনীয় তথ্য পূরণ করুন', 'error');
+    return;
+  }
+
+  const uClean = username.trim().toLowerCase();
+  const exists = registeredUsersDB.some(u => u.username.toLowerCase() === uClean);
+  if (exists) {
+    toast('এই ইউজার আইডিটি ইতিমধ্যেই নিবন্ধিত রয়েছে', 'error');
+    return;
+  }
+
+  const newUser = {
+    id: 'usr_' + Date.now(),
+    username: username.trim(),
+    name: fullName.trim(),
+    role: role || 'DMF',
+    office: office.trim() || 'উপজেলা ভূমি অফিস',
+    createdAt: new Date().toISOString()
+  };
+
+  registeredUsersDB.push(newUser);
+  localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+
+  currentUser = newUser;
+  localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+  userFilterMode = 'my';
+  renderUserProfileWidget();
+  closeAuthModal();
+  refreshListDisplay();
+  toast(`অভিনন্দন ${newUser.name}! আপনার নতুন একাউন্ট সফলভাবে নিবন্ধিত হয়েছে 🎉`, 'success');
 }
 
 function logoutUser() {
   currentUser = null;
   localStorage.removeItem('lmap_active_user');
+  userFilterMode = 'all';
   renderUserProfileWidget();
+  closeUserProfileModal();
+  refreshListDisplay();
   toast('সফলভাবে লগআউট করা হয়েছে', 'info');
+}
+
+/* ── USER PROFILE VIEW & EDIT CONTROLLER ── */
+function openUserProfileModal() {
+  if (!currentUser) {
+    openAuthModal();
+    return;
+  }
+
+  const profileModal = document.getElementById('userProfileModal');
+  if (profileModal) profileModal.classList.add('open');
+
+  showProfileViewSection();
+
+  // Populate Profile View
+  const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
+  document.getElementById('profileAvatarLarge').textContent = initial;
+  document.getElementById('profileViewName').textContent = currentUser.name || 'ইউজার';
+  document.getElementById('profileViewRole').textContent = currentUser.role || 'DMF';
+  document.getElementById('profileViewOffice').textContent = currentUser.office || 'উপজেলা ভূমি অফিস';
+  document.getElementById('profileViewUsername').textContent = currentUser.username || '—';
+
+  // Calculate User Stats
+  const userHoldings = allRecords.filter(r => r.createdBy && r.createdBy.username === currentUser.username);
+  let totalPlots = 0;
+  let totalArea = 0;
+
+  userHoldings.forEach(r => {
+    if (r.dagRows) totalPlots += r.dagRows.length;
+    const t = holdingTotals(r);
+    totalArea += t.area;
+  });
+
+  document.getElementById('pstatHoldingsCount').textContent = bnInt(userHoldings.length);
+  document.getElementById('pstatPlotsCount').textContent = bnInt(totalPlots);
+  document.getElementById('pstatAreaCount').textContent = bnNum(cleanDecimal(totalArea));
+}
+
+function closeUserProfileModal() {
+  const profileModal = document.getElementById('userProfileModal');
+  if (profileModal) profileModal.classList.remove('open');
+}
+
+function showProfileViewSection() {
+  document.getElementById('profileViewSection').style.display = 'block';
+  document.getElementById('profileEditSection').style.display = 'none';
+}
+
+function showProfileEditSection() {
+  document.getElementById('profileViewSection').style.display = 'none';
+  document.getElementById('profileEditSection').style.display = 'block';
+
+  // Populate Edit Fields
+  document.getElementById('editFullName').value = currentUser.name || '';
+  document.getElementById('editRole').value = currentUser.role || 'DMF';
+  document.getElementById('editOffice').value = currentUser.office || '';
+  document.getElementById('editPassword').value = '';
+}
+
+function saveProfileEdit() {
+  const name = document.getElementById('editFullName').value.trim();
+  const role = document.getElementById('editRole').value;
+  const office = document.getElementById('editOffice').value.trim();
+
+  if (!name) {
+    toast('ইউজারের পূর্ণ নাম আবশ্যক', 'error');
+    return;
+  }
+
+  currentUser.name = name;
+  currentUser.role = role;
+  currentUser.office = office || 'উপজেলা ভূমি অফিস';
+
+  // Update active user and database
+  localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+  const idx = registeredUsersDB.findIndex(u => u.id === currentUser.id);
+  if (idx !== -1) {
+    registeredUsersDB[idx] = { ...currentUser };
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  }
+
+  renderUserProfileWidget();
+  showProfileViewSection();
+  openUserProfileModal();
+  refreshListDisplay();
+  toast('প্রোফাইল তথ্য সফলভাবে আপডেট করা হয়েছে ✓', 'success');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1320,6 +1570,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const closeAuthBtn = document.getElementById('closeAuthBtn');
   if (closeAuthBtn) closeAuthBtn.addEventListener('click', closeAuthModal);
+
+  const closeProfileBtn = document.getElementById('closeProfileBtn');
+  if (closeProfileBtn) closeProfileBtn.addEventListener('click', closeUserProfileModal);
+
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
+
+  const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+  if (tabRegisterBtn) tabRegisterBtn.addEventListener('click', () => switchAuthTab('register'));
 
   const authLoginForm = document.getElementById('authLoginForm');
   if (authLoginForm) {
@@ -1331,4 +1590,34 @@ document.addEventListener('DOMContentLoaded', () => {
       loginUser(uInp.value, pInp.value, rInp.value);
     });
   }
+
+  const authRegisterForm = document.getElementById('authRegisterForm');
+  if (authRegisterForm) {
+    authRegisterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fInp = document.getElementById('regFullName');
+      const uInp = document.getElementById('regUsername');
+      const pInp = document.getElementById('regPassword');
+      const rInp = document.getElementById('regRole');
+      const oInp = document.getElementById('regOffice');
+      registerUser(fInp.value, uInp.value, pInp.value, rInp.value, oInp.value);
+    });
+  }
+
+  const btnEditProfileOpen = document.getElementById('btnEditProfileOpen');
+  if (btnEditProfileOpen) btnEditProfileOpen.addEventListener('click', showProfileEditSection);
+
+  const btnCancelProfileEdit = document.getElementById('btnCancelProfileEdit');
+  if (btnCancelProfileEdit) btnCancelProfileEdit.addEventListener('click', showProfileViewSection);
+
+  const editProfileForm = document.getElementById('editProfileForm');
+  if (editProfileForm) {
+    editProfileForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveProfileEdit();
+    });
+  }
+
+  const btnProfileLogout = document.getElementById('btnProfileLogout');
+  if (btnProfileLogout) btnProfileLogout.addEventListener('click', logoutUser);
 });

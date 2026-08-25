@@ -149,6 +149,21 @@
       </button>
     </div>
 
+    <!-- USER DATA FILTER TOOLBAR -->
+    <div class="user-filter-bar" id="userFilterBar">
+      <div class="user-filter-btns">
+        <button class="filter-tab-btn active" id="filterMyDataBtn">
+          👤 আমার ডাটা (<span id="myDataCount">০</span>)
+        </button>
+        <button class="filter-tab-btn" id="filterAllDataBtn">
+          🌐 সকল ইউজার ডাটা (<span id="allDataCount">০</span>)
+        </button>
+      </div>
+      <div class="user-filter-notice" id="userFilterNotice">
+        আপনার সংরক্ষিত হোল্ডিং তথ্য প্রদর্শিত হচ্ছে
+      </div>
+    </div>
+
     <div class="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="searchBox" placeholder="হোল্ডিং নম্বর, দাগ নম্বর বা খতিয়ান নম্বর দিয়ে অনুসন্ধান করুন…">
@@ -342,52 +357,206 @@
   </div>
 </div>
 
-<!-- OFFICIAL LMAP USER LOGIN & AUTHENTICATION MODAL -->
+<!-- OFFICIAL LMAP USER LOGIN & REGISTRATION MODAL -->
 <div class="modal-overlay" id="authModal">
   <div class="modal-box auth-modal-box">
     <div class="modal-head">
       <div class="auth-head-title">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>LMAP সেশন লগইন ও ব্যবহারকারী প্রমাণীকরণ</span>
+        <span id="authModalTitle">LMAP প্রফেশনাল ইউজার পোর্টাল</span>
       </div>
       <button class="modal-close" id="closeAuthBtn" aria-label="বন্ধ করুন">✕</button>
     </div>
     <div class="modal-body">
-      <div class="auth-banner-notice">
-        🔒 <strong>অফিসিয়াল এক্সেস সিকিউরিটি:</strong> জমি কর্তন ও খতিয়ান ভেরিফিকেশন সিস্টেমে ডাটা ইনপুট, এডিট বা পরিবর্তনের জন্য অফিশিয়াল ইউজার হিসেবে লগইন করা বাধ্যতামূলক।
+      <!-- AUTH TAB SWITCHER -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabLoginBtn">🔑 ইউজার লগইন</button>
+        <button class="auth-tab-btn" id="tabRegisterBtn">✨ নতুন একাউন্ট নিবন্ধন</button>
       </div>
 
-      <form id="authLoginForm" onsubmit="return false;">
-        <div class="field-wrap" style="margin-bottom:12px;">
-          <label>অফিসিয়াল ইউজার আইডি / ইমেইল <span style="color:var(--danger)">*</span></label>
-          <input type="text" id="authUsername" placeholder="যেমন: operator1 / shehab@land.gov.bd" required autocomplete="username">
+      <!-- LOGIN FORM PANEL -->
+      <div id="loginFormPanel">
+        <div class="auth-banner-notice">
+          🔒 <strong>নিরাপদ প্রবেশাধিকার:</strong> জমি কর্তন ও খতিয়ান ভেরিফিকেশন সিস্টেমে নিজ নামীয় ডাটা ইনপুট, এডিট বা ফিল্টারিংয়ের জন্য লগইন করুন।
         </div>
 
-        <div class="field-wrap" style="margin-bottom:12px;">
-          <label>পাসওয়ার্ড / এক্সেস পিন <span style="color:var(--danger)">*</span></label>
-          <input type="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
-        </div>
+        <form id="authLoginForm" onsubmit="return false;">
+          <div class="field-wrap" style="margin-bottom:12px;">
+            <label>ইউজার আইডি / অফিশিয়াল ইমেইল <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="authUsername" placeholder="যেমন: operator1 / shehab@land.gov.bd" required autocomplete="username">
+          </div>
 
-        <div class="field-wrap" style="margin-bottom:16px;">
-          <label>ব্যবহারকারীর রোল / পদবী <span style="color:var(--danger)">*</span></label>
-          <select id="authRole">
-            <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
-            <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
-            <option value="Land Officer">সহকারী কমিশনার (ভূমি) / অফিসার</option>
-            <option value="Admin">সিস্টেম এডমিন (Admin / Auditor)</option>
-          </select>
-        </div>
+          <div class="field-wrap" style="margin-bottom:12px;">
+            <label>পাসওয়ার্ড / এক্সেস পিন <span style="color:var(--danger)">*</span></label>
+            <input type="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
+          </div>
 
-        <div class="btn-row" style="margin-top:18px;">
-          <button type="submit" class="btn primary" id="btnLoginSubmit" style="width:100%; justify-content:center; padding:10px;">
-            🔑 প্রফেশনাল ইউজার হিসেবে প্রবেশ করুন
-          </button>
-        </div>
-      </form>
+          <div class="field-wrap" style="margin-bottom:16px;">
+            <label>পদবী / রোল সিলেকশন</label>
+            <select id="authRole">
+              <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+              <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+              <option value="Land Officer">সহকারী কমিশনার (ভূমি) / অফিসার</option>
+              <option value="Admin">সিস্টেম এডমিন (Admin / Auditor)</option>
+            </select>
+          </div>
 
-      <div style="margin-top:14px; text-align:center; font-size:11.5px; color:var(--ink-soft);">
-        ডেমো এক্সেস: যেকোনো আইডি ও পাসওয়ার্ড লিখে লগইন বাটনে ক্লিক করুন।
+          <div class="btn-row" style="margin-top:18px;">
+            <button type="submit" class="btn primary" id="btnLoginSubmit" style="width:100%; justify-content:center; padding:10px;">
+              🔑 প্রফেশনাল ইউজার হিসেবে প্রবেশ করুন
+            </button>
+          </div>
+        </form>
       </div>
+
+      <!-- REGISTER FORM PANEL -->
+      <div id="registerFormPanel" style="display:none;">
+        <div class="auth-banner-notice">
+          📝 <strong>নতুন ইউজার রেজিস্ট্রেশন:</strong> সিস্টেমে নিজের আলাদা প্রোফাইল তৈরি করতে নিচের তথ্যগুলো পূরণ করুন।
+        </div>
+
+        <form id="authRegisterForm" onsubmit="return false;">
+          <div class="field-wrap" style="margin-bottom:12px;">
+            <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="regFullName" placeholder="যেমন: মো: শাহরিয়ার শিহাব" required>
+          </div>
+
+          <div class="field-wrap" style="margin-bottom:12px;">
+            <label>ইউজার আইডি / অফিশিয়াল ইমেইল <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="regUsername" placeholder="যেমন: shehab / shehab@land.gov.bd" required autocomplete="username">
+          </div>
+
+          <div class="field-grid" style="margin-bottom:12px;">
+            <div class="field-wrap">
+              <label>পাসওয়ার্ড <span style="color:var(--danger)">*</span></label>
+              <input type="password" id="regPassword" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+            <div class="field-wrap">
+              <label>পদবী / রোল <span style="color:var(--danger)">*</span></label>
+              <select id="regRole">
+                <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+                <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+                <option value="Land Officer">সহকারী কমিশনার (ভূমি)</option>
+                <option value="Admin">সিস্টেম এডমিন (Admin)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-wrap" style="margin-bottom:16px;">
+            <label>কার্যালয় / স্থান <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
+            <input type="text" id="regOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
+          </div>
+
+          <div class="btn-row" style="margin-top:18px;">
+            <button type="submit" class="btn primary" id="btnRegisterSubmit" style="width:100%; justify-content:center; padding:10px;">
+              ✨ একাউন্ট সফলভাবে নিবন্ধন করুন
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- USER PROFILE & ACCOUNT MANAGEMENT MODAL -->
+<div class="modal-overlay" id="userProfileModal">
+  <div class="modal-box profile-modal-box">
+    <div class="modal-head">
+      <div class="auth-head-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>ইউজার প্রোফাইল ও একাউন্ট কন্ট্রোল</span>
+      </div>
+      <button class="modal-close" id="closeProfileBtn" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- PROFILE VIEW SECTION -->
+      <div id="profileViewSection">
+        <div class="profile-header-card">
+          <div class="profile-avatar-large" id="profileAvatarLarge">S</div>
+          <div class="profile-header-meta">
+            <h3 id="profileViewName">Shahriyar Shehab</h3>
+            <div class="profile-role-pill" id="profileViewRole">DMF</div>
+            <div class="profile-office-text" id="profileViewOffice">উপজেলা ভূমি অফিস, ফেনী সদর</div>
+          </div>
+        </div>
+
+        <!-- PROFILE STATS ROW -->
+        <div class="profile-stats-grid">
+          <div class="pstat-card">
+            <div class="pstat-val" id="pstatHoldingsCount">০</div>
+            <div class="pstat-lbl">সংরক্ষিত হোল্ডিং</div>
+          </div>
+          <div class="pstat-card">
+            <div class="pstat-val" id="pstatPlotsCount">০</div>
+            <div class="pstat-lbl">মোট দাগ সংখ্যা</div>
+          </div>
+          <div class="pstat-card">
+            <div class="pstat-val" id="pstatAreaCount">০.০০</div>
+            <div class="pstat-lbl">মোট এন্ট্রি জমি</div>
+          </div>
+        </div>
+
+        <!-- PROFILE DETAILS LIST -->
+        <div class="profile-details-list">
+          <div class="pdetail-item">
+            <span class="pdetail-label">ইউজার আইডি/ইমেইল:</span>
+            <strong class="pdetail-val" id="profileViewUsername">shehab@land.gov.bd</strong>
+          </div>
+          <div class="pdetail-item">
+            <span class="pdetail-label">সেশন স্থিতি:</span>
+            <span class="pdetail-val" id="profileViewSession" style="color:var(--accent); font-weight:bold;">সক্রিয় (Active)</span>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-top:20px; justify-content:space-between;">
+          <button class="btn ghost" id="btnEditProfileOpen">✎ প্রোফাইল তথ্য এডিট করুন</button>
+          <button class="btn danger" id="btnProfileLogout">🚪 লগআউট করুন</button>
+        </div>
+      </div>
+
+      <!-- PROFILE EDIT SECTION (HIDDEN BY DEFAULT) -->
+      <div id="profileEditSection" style="display:none;">
+        <div class="auth-banner-notice">
+          ✏️ <strong>প্রোফাইল সংশোধন:</strong> আপনার নাম, অফিশিয়াল পদবী, কার্যালয় বা পাসওয়ার্ড আপডেট করুন।
+        </div>
+
+        <form id="editProfileForm" onsubmit="return false;">
+          <div class="field-wrap" style="margin-bottom:12px;">
+            <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="editFullName" required>
+          </div>
+
+          <div class="field-grid" style="margin-bottom:12px;">
+            <div class="field-wrap">
+              <label>পদবী / রোল <span style="color:var(--danger)">*</span></label>
+              <select id="editRole">
+                <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+                <option value="DMF">ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+                <option value="Land Officer">সহকারী কমিশনার (ভূমি)</option>
+                <option value="Admin">সিস্টেম এডমিন (Admin)</option>
+              </select>
+            </div>
+            <div class="field-wrap">
+              <label>নতুন পাসওয়ার্ড <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
+              <input type="password" id="editPassword" placeholder="নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে">
+            </div>
+          </div>
+
+          <div class="field-wrap" style="margin-bottom:16px;">
+            <label>কার্যালয় / স্থান</label>
+            <input type="text" id="editOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
+          </div>
+
+          <div class="btn-row" style="margin-top:18px;">
+            <button type="button" class="btn ghost" id="btnCancelProfileEdit">ফিরে যান</button>
+            <button type="submit" class="btn primary" id="btnSaveProfileSubmit">
+              💾 পরিবর্তন সংরক্ষণ করুন
+            </button>
+          </div>
+        </form>
+      </div>
+
     </div>
   </div>
 </div>
