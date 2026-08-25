@@ -1464,8 +1464,7 @@ async function loadAll(){
 
 // INITIALIZE USER SESSION FIRST BEFORE LOADING DATA
 initUserAuth();
-dagRows=[newDagRow()];
-renderDagTable();
+clearForm();
 loadAll();
 
 function renderAdminPanelButton() {
