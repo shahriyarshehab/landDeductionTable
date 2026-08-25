@@ -1348,8 +1348,9 @@ function renderUserProfileWidget() {
     }
   } else {
     widget.innerHTML = `
-      <button class="btn primary btn-auth-login" id="btnOpenAuthModal">
-        🔑 ইউজার লগইন / রেজিস্টার
+      <button class="btn btn-auth-login" id="btnOpenAuthModal">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>ইউজার লগইন</span>
       </button>
     `;
     const btnLogin = document.getElementById('btnOpenAuthModal');
