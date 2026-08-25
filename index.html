@@ -512,15 +512,15 @@
         </div>
 
         <div class="btn-row" style="margin-top:20px; justify-content:space-between;">
-          <button class="btn ghost" id="btnEditProfileOpen">✎ প্রোফাইল তথ্য এডিট করুন</button>
-          <button class="btn danger" id="btnProfileLogout">🚪 লগআউট করুন</button>
+          <button class="btn ghost" id="btnEditProfileOpen">প্রোফাইল তথ্য এডিট করুন</button>
+          <button class="btn danger" id="btnProfileLogout">লগআউট করুন</button>
         </div>
       </div>
 
       <!-- PROFILE EDIT SECTION (HIDDEN BY DEFAULT) -->
       <div id="profileEditSection" style="display:none;">
         <div class="auth-banner-notice">
-          ✏️ <strong>প্রোফাইল সংশোধন:</strong> আপনার নাম, অফিশিয়াল পদবী, কার্যালয় বা পাসওয়ার্ড আপডেট করুন।
+          <strong>প্রোফাইল সংশোধন:</strong> আপনার নাম, ইউজার আইডি, অফিশিয়াল পদবী, কার্যালয় বা পাসওয়ার্ড আপডেট করুন।
         </div>
 
         <form id="editProfileForm" method="dialog" action="#">
@@ -530,8 +530,8 @@
               <input type="text" name="fullname" id="editFullName" required autocomplete="name">
             </div>
             <div class="field-wrap">
-              <label>ইউজার আইডি / ইমেইল</label>
-              <input type="email" name="username" id="editUsername" disabled readonly style="opacity:0.75; background:var(--surface-3);">
+              <label>ইউজার আইডি / ইমেইল <span style="color:var(--danger)">*</span></label>
+              <input type="email" name="username" id="editUsername" required autocomplete="username">
             </div>
           </div>
 
@@ -559,7 +559,7 @@
           <div class="btn-row" style="margin-top:18px;">
             <button type="button" class="btn ghost" id="btnCancelProfileEdit">ফিরে যান</button>
             <button type="submit" class="btn primary" id="btnSaveProfileSubmit">
-              💾 পরিবর্তন সংরক্ষণ করুন
+              পরিবর্তন সংরক্ষণ করুন
             </button>
           </div>
         </form>

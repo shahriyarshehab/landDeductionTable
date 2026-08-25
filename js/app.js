@@ -1619,6 +1619,7 @@ function showProfileEditSection() {
 
 async function saveProfileEdit() {
   const name = document.getElementById('editFullName').value.trim();
+  const username = document.getElementById('editUsername').value.trim();
   const role = document.getElementById('editRole').value;
   const office = document.getElementById('editOffice').value.trim();
   const pwd = document.getElementById('editPassword').value;
@@ -1626,6 +1627,35 @@ async function saveProfileEdit() {
   if (!name) {
     toast('ইউজারের পূর্ণ নাম আবশ্যক', 'error');
     return;
+  }
+  if (!username) {
+    toast('ইউজার আইডি/ইমেইল আবশ্যক', 'error');
+    return;
+  }
+
+  const oldUsername = currentUser.username;
+  const newUsername = username;
+
+  if (newUsername.toLowerCase() !== oldUsername.toLowerCase()) {
+    const exists = registeredUsersDB.some(u => u.id !== currentUser.id && u.username.toLowerCase() === newUsername.toLowerCase());
+    if (exists) {
+      toast('এই ইউজার আইডিটি অন্য একাউন্টে ব্যবহৃত হচ্ছে', 'error');
+      return;
+    }
+    currentUser.username = newUsername;
+
+    // Migrate user's saved holdings to new username
+    for (let r of allRecords) {
+      if (r.createdBy && (r.createdBy.username === oldUsername || r.createdBy.id === currentUser.id)) {
+        r.createdBy.username = newUsername;
+        r.createdBy.name = name;
+        r.createdBy.role = role;
+        r.createdBy.office = office;
+        try {
+          await storage.set('holding:' + r.id, JSON.stringify(r));
+        } catch (e) {}
+      }
+    }
   }
 
   currentUser.name = name;
@@ -1648,7 +1678,7 @@ async function saveProfileEdit() {
   showProfileViewSection();
   openUserProfileModal();
   refreshListDisplay();
-  toast('প্রোফাইল তথ্য সফলভাবে আপডেট করা হয়েছে ✓', 'success');
+  toast('ইউজার প্রোফাইল ও ইউজার আইডি সফলভাবে আপডেট করা হয়েছে ✓', 'success');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
