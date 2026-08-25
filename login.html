@@ -65,6 +65,32 @@
       color: var(--ink-soft);
       margin-top: 20px;
     }
+    /* Glassmorphic Transparent Theme-Wise Dropdown & Input Styling */
+    select, input[type="text"], input[type="email"], input[type="password"] {
+      background: var(--surface-2) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid var(--line) !important;
+      color: var(--ink) !important;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 13.5px;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    select:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 3px var(--accent-glow) !important;
+      background: var(--surface) !important;
+    }
+    select option {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 8px 12px;
+    }
+    html[data-theme="light"] select option {
+      background: #ffffff;
+      color: #0f172a;
+    }
   </style>
 </head>
 <body>
