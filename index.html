@@ -382,15 +382,15 @@
           <strong>নিরাপদ প্রবেশাধিকার:</strong> জমি কর্তন ও খতিয়ান ভেরিফিকেশন সিস্টেমে নিজ নামীয় ডাটা ইনপুট, এডিট বা ফিল্টারিংয়ের জন্য লগইন করুন।
         </div>
 
-        <form id="authLoginForm" onsubmit="return false;">
+        <form id="authLoginForm" method="dialog" action="#">
           <div class="field-wrap" style="margin-bottom:12px;">
-            <label>ইউজার আইডি / অফিশিয়াল ইমেইল <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="authUsername" placeholder="যেমন: operator1 / shehab@land.gov.bd" required autocomplete="username">
+            <label>অফিশিয়াল ইমেইল / ইউজার আইডি (Email / Username) <span style="color:var(--danger)">*</span></label>
+            <input type="email" name="username" id="authUsername" placeholder="যেমন: shehab@land.gov.bd" required autocomplete="username">
           </div>
 
           <div class="field-wrap" style="margin-bottom:12px;">
             <label>পাসওয়ার্ড / এক্সেস পিন <span style="color:var(--danger)">*</span></label>
-            <input type="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
+            <input type="password" name="password" id="authPassword" placeholder="••••••••" required autocomplete="current-password">
           </div>
 
           <div class="field-wrap" style="margin-bottom:16px;">
@@ -417,21 +417,21 @@
           <strong>নতুন ইউজার রেজিস্ট্রেশন:</strong> সিস্টেমে নিজের আলাদা প্রোফাইল তৈরি করতে নিচের তথ্যগুলো পূরণ করুন।
         </div>
 
-        <form id="authRegisterForm" onsubmit="return false;">
+        <form id="authRegisterForm" method="dialog" action="#">
           <div class="field-wrap" style="margin-bottom:12px;">
             <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="regFullName" placeholder="যেমন: মো: শাহরিয়ার শিহাব" required>
+            <input type="text" name="fullname" id="regFullName" placeholder="যেমন: মো: শাহরিয়ার শিহাব" required autocomplete="name">
           </div>
 
           <div class="field-wrap" style="margin-bottom:12px;">
-            <label>ইউজার আইডি / অফিশিয়াল ইমেইল <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="regUsername" placeholder="যেমন: shehab / shehab@land.gov.bd" required autocomplete="username">
+            <label>অফিশিয়াল ইমেইল / ইউজার আইডি (Email / Username) <span style="color:var(--danger)">*</span></label>
+            <input type="email" name="username" id="regUsername" placeholder="যেমন: shehab@land.gov.bd" required autocomplete="username">
           </div>
 
           <div class="field-grid" style="margin-bottom:12px;">
             <div class="field-wrap">
               <label>পাসওয়ার্ড <span style="color:var(--danger)">*</span></label>
-              <input type="password" id="regPassword" placeholder="••••••••" required autocomplete="new-password">
+              <input type="password" name="password" id="regPassword" placeholder="••••••••" required autocomplete="new-password">
             </div>
             <div class="field-wrap">
               <label>পদবী / রোল <span style="color:var(--danger)">*</span></label>
@@ -446,7 +446,7 @@
 
           <div class="field-wrap" style="margin-bottom:16px;">
             <label>কার্যালয় / স্থান <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
-            <input type="text" id="regOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
+            <input type="text" name="office" id="regOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
           </div>
 
           <div class="btn-row" style="margin-top:18px;">
@@ -523,10 +523,16 @@
           ✏️ <strong>প্রোফাইল সংশোধন:</strong> আপনার নাম, অফিশিয়াল পদবী, কার্যালয় বা পাসওয়ার্ড আপডেট করুন।
         </div>
 
-        <form id="editProfileForm" onsubmit="return false;">
-          <div class="field-wrap" style="margin-bottom:12px;">
-            <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="editFullName" required>
+        <form id="editProfileForm" method="dialog" action="#">
+          <div class="field-grid" style="margin-bottom:12px;">
+            <div class="field-wrap">
+              <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
+              <input type="text" name="fullname" id="editFullName" required autocomplete="name">
+            </div>
+            <div class="field-wrap">
+              <label>ইউজার আইডি / ইমেইল</label>
+              <input type="email" name="username" id="editUsername" disabled readonly style="opacity:0.75; background:var(--surface-3);">
+            </div>
           </div>
 
           <div class="field-grid" style="margin-bottom:12px;">
@@ -541,7 +547,7 @@
             </div>
             <div class="field-wrap">
               <label>নতুন পাসওয়ার্ড <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
-              <input type="password" id="editPassword" placeholder="নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে">
+              <input type="password" name="password" id="editPassword" placeholder="নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে" autocomplete="new-password">
             </div>
           </div>
 

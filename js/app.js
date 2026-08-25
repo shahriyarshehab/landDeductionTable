@@ -1610,15 +1610,18 @@ function showProfileEditSection() {
 
   // Populate Edit Fields
   document.getElementById('editFullName').value = currentUser.name || '';
+  const editUserEl = document.getElementById('editUsername');
+  if (editUserEl) editUserEl.value = currentUser.username || '';
   document.getElementById('editRole').value = currentUser.role || 'DMF';
   document.getElementById('editOffice').value = currentUser.office || '';
   document.getElementById('editPassword').value = '';
 }
 
-function saveProfileEdit() {
+async function saveProfileEdit() {
   const name = document.getElementById('editFullName').value.trim();
   const role = document.getElementById('editRole').value;
   const office = document.getElementById('editOffice').value.trim();
+  const pwd = document.getElementById('editPassword').value;
 
   if (!name) {
     toast('ইউজারের পূর্ণ নাম আবশ্যক', 'error');
@@ -1628,6 +1631,10 @@ function saveProfileEdit() {
   currentUser.name = name;
   currentUser.role = role;
   currentUser.office = office || 'উপজেলা ভূমি অফিস';
+
+  if (pwd && pwd.trim()) {
+    currentUser.passwordHash = await hashPassword(pwd.trim());
+  }
 
   // Update active user and database
   localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
@@ -1661,26 +1668,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const authLoginForm = document.getElementById('authLoginForm');
   if (authLoginForm) {
-    authLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const handleLogin = (e) => {
+      if (e) e.preventDefault();
       const uInp = document.getElementById('authUsername');
       const pInp = document.getElementById('authPassword');
       const rInp = document.getElementById('authRole');
       loginUser(uInp.value, pInp.value, rInp.value);
-    });
+    };
+    authLoginForm.addEventListener('submit', handleLogin);
+    const btnLoginSubmit = document.getElementById('btnLoginSubmit');
+    if (btnLoginSubmit) btnLoginSubmit.addEventListener('click', handleLogin);
   }
 
   const authRegisterForm = document.getElementById('authRegisterForm');
   if (authRegisterForm) {
-    authRegisterForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const handleRegister = (e) => {
+      if (e) e.preventDefault();
       const fInp = document.getElementById('regFullName');
       const uInp = document.getElementById('regUsername');
       const pInp = document.getElementById('regPassword');
       const rInp = document.getElementById('regRole');
       const oInp = document.getElementById('regOffice');
       registerUser(fInp.value, uInp.value, pInp.value, rInp.value, oInp.value);
-    });
+    };
+    authRegisterForm.addEventListener('submit', handleRegister);
+    const btnRegisterSubmit = document.getElementById('btnRegisterSubmit');
+    if (btnRegisterSubmit) btnRegisterSubmit.addEventListener('click', handleRegister);
   }
 
   const btnEditProfileOpen = document.getElementById('btnEditProfileOpen');
@@ -1691,10 +1704,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const editProfileForm = document.getElementById('editProfileForm');
   if (editProfileForm) {
-    editProfileForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const handleEditSave = (e) => {
+      if (e) e.preventDefault();
       saveProfileEdit();
-    });
+    };
+    editProfileForm.addEventListener('submit', handleEditSave);
+    const btnSaveProfileSubmit = document.getElementById('btnSaveProfileSubmit');
+    if (btnSaveProfileSubmit) btnSaveProfileSubmit.addEventListener('click', handleEditSave);
   }
 
   const btnProfileLogout = document.getElementById('btnProfileLogout');
