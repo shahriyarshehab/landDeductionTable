@@ -1745,4 +1745,198 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnProfileLogout = document.getElementById('btnProfileLogout');
   if (btnProfileLogout) btnProfileLogout.addEventListener('click', logoutUser);
+
+  // Extra Enterprise Features Event Listeners
+  const btnOpenAnalyticsModal = document.getElementById('btnOpenAnalyticsModal');
+  if (btnOpenAnalyticsModal) btnOpenAnalyticsModal.addEventListener('click', openAnalyticsModal);
+
+  const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
+  if (closeAnalyticsBtn) closeAnalyticsBtn.addEventListener('click', closeAnalyticsModal);
+
+  const btnOpenAuditLogModal = document.getElementById('btnOpenAuditLogModal');
+  if (btnOpenAuditLogModal) btnOpenAuditLogModal.addEventListener('click', openAuditLogModal);
+
+  const closeAuditLogBtn = document.getElementById('closeAuditLogBtn');
+  if (closeAuditLogBtn) closeAuditLogBtn.addEventListener('click', closeAuditLogModal);
+
+  const btnExportJsonBackup = document.getElementById('btnExportJsonBackup');
+  if (btnExportJsonBackup) btnExportJsonBackup.addEventListener('click', exportJsonBackup);
+
+  const importJsonBackupFile = document.getElementById('importJsonBackupFile');
+  if (importJsonBackupFile) {
+    importJsonBackupFile.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        importJsonBackup(e.target.files[0]);
+      }
+    });
+  }
+});
+
+/* ── AUDIT LOGGING ENGINE ── */
+let auditLogsDB = [];
+
+function initAuditLog() {
+  try {
+    const str = localStorage.getItem('lmap_audit_log');
+    if (str) auditLogsDB = JSON.parse(str);
+    else auditLogsDB = [];
+  } catch (e) {
+    auditLogsDB = [];
+  }
+}
+
+function logAuditActivity(actionName, details = '') {
+  initAuditLog();
+  const entry = {
+    id: 'log_' + Date.now(),
+    time: new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    date: new Date().toLocaleDateString('bn-BD'),
+    user: currentUser ? currentUser.name : 'অজ্ঞাত ভিজিটর',
+    role: currentUser ? currentUser.role : 'Guest',
+    action: actionName,
+    details: details
+  };
+  auditLogsDB.unshift(entry);
+  if (auditLogsDB.length > 100) auditLogsDB.pop();
+  try {
+    localStorage.setItem('lmap_audit_log', JSON.stringify(auditLogsDB));
+  } catch (e) {}
+}
+
+function openAuditLogModal() {
+  initAuditLog();
+  const modal = document.getElementById('auditLogModal');
+  if (modal) modal.classList.add('open');
+
+  const listEl = document.getElementById('auditLogList');
+  if (!listEl) return;
+
+  if (auditLogsDB.length === 0) {
+    listEl.innerHTML = `<div class="empty"><div class="empty-icon">📜</div><strong>কোনো অ্যাক্টিভিটি লগ নেই</strong></div>`;
+    return;
+  }
+
+  listEl.innerHTML = auditLogsDB.map(log => `
+    <div class="audit-item">
+      <div class="audit-item-head">
+        <span>${log.action}</span>
+        <span class="audit-item-time">${log.date} ${log.time}</span>
+      </div>
+      <div class="audit-item-desc">ইউজার: <strong>${log.user}</strong> (${log.role}) — ${log.details}</div>
+    </div>
+  `).join('');
+}
+
+function closeAuditLogModal() {
+  const modal = document.getElementById('auditLogModal');
+  if (modal) modal.classList.remove('open');
+}
+
+/* ── DATA ANALYTICS CONTROLLER ── */
+function openAnalyticsModal() {
+  const modal = document.getElementById('analyticsModal');
+  if (modal) modal.classList.add('open');
+
+  const visibleRecords = applyUserFilter(allRecords);
+
+  let totalHoldings = visibleRecords.length;
+  let khatians = new Set();
+  let totalPlots = 0;
+  let totalArea = 0;
+  let totalKorton = 0;
+  let totalRemain = 0;
+
+  visibleRecords.forEach(r => {
+    if (r.khatian) khatians.add(r.khatian);
+    if (r.dagRows) totalPlots += r.dagRows.length;
+    const t = holdingTotals(r);
+    totalArea += t.area;
+    totalKorton += t.korton;
+    totalRemain += t.remain;
+  });
+
+  const avgKortonPct = totalArea > 0 ? ((totalKorton / totalArea) * 100).toFixed(1) : 0;
+
+  document.getElementById('statTotHoldings').textContent = bnInt(totalHoldings);
+  document.getElementById('statTotKhatian').textContent = bnInt(khatians.size);
+  document.getElementById('statTotPlots').textContent = bnInt(totalPlots);
+  document.getElementById('statTotArea').textContent = bnNum(cleanDecimal(totalArea));
+  document.getElementById('statTotKorton').textContent = bnNum(cleanDecimal(totalKorton)) + ' শতক';
+  document.getElementById('statTotRemain').textContent = bnNum(cleanDecimal(totalRemain)) + ' শতক';
+  document.getElementById('statAvgKortonPct').textContent = bnNum(avgKortonPct) + '%';
+}
+
+function closeAnalyticsModal() {
+  const modal = document.getElementById('analyticsModal');
+  if (modal) modal.classList.remove('open');
+}
+
+/* ── SYSTEM JSON BACKUP & RESTORE ── */
+function exportJsonBackup() {
+  if (!requireUserAuth('সিস্টেম ব্যাকআপ এক্সপোর্ট করতে')) return;
+  const backupData = {
+    version: 'LMAP-4.5',
+    exportDate: new Date().toISOString(),
+    exportedBy: currentUser,
+    holdings: allRecords,
+    usersDB: registeredUsersDB
+  };
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `LMAP_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  logAuditActivity('সিস্টেম ব্যাকআপ এক্সপোর্ট', 'JSON ব্যাকআপ ফাইল ডাউনলোড করা হয়েছে');
+  toast('সিস্টেম ব্যাকআপ ফাইল সফলভাবে ডাউনলোড হয়েছে ✓', 'success');
+}
+
+function importJsonBackup(file) {
+  if (!requireUserAuth('ব্যাকআপ রিস্টোর করতে')) return;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && data.holdings && Array.isArray(data.holdings)) {
+        for (const h of data.holdings) {
+          if (h.id) {
+            await storage.set('holding:' + h.id, JSON.stringify(h));
+          }
+        }
+        if (data.usersDB && Array.isArray(data.usersDB)) {
+          localStorage.setItem('lmap_users_db', JSON.stringify(data.usersDB));
+        }
+        await loadAll();
+        logAuditActivity('ব্যাকআপ রিস্টোর', `JSON ব্যাকআপ থেকে ${data.holdings.length} টি হোল্ডিং রিস্টোর করা হয়েছে`);
+        toast(`সাফল্যের সাথে ${data.holdings.length} টি হোল্ডিং রিস্টোর করা হয়েছে 🎉`, 'success');
+      } else {
+        toast('অবৈধ ব্যাকআপ ফাইল ফরম্যাট', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('ব্যাকআপ ফাইল রিড করতে সমস্যা হয়েছে', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── KEYBOARD SHORTCUTS CONTROLLER ── */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    if (requireUserAuth('ডাটা সংরক্ষণ করতে')) saveHolding();
+  } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+    e.preventDefault();
+    const searchBox = document.getElementById('searchBox');
+    if (searchBox) searchBox.focus();
+  } else if (e.key === 'Escape') {
+    closeAuthModal();
+    closeUserProfileModal();
+    closeAnalyticsModal();
+    closeAuditLogModal();
+  }
 });

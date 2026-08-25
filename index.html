@@ -166,7 +166,24 @@
       </div>
     </div>
 
-    <div class="search-wrap">
+    <!-- EXTRA ENTERPRISE TOOLS BAR -->
+    <div class="extra-tools-bar">
+      <button class="btn ghost btn-sm" id="btnOpenAnalyticsModal" title="ডাটা অ্যানালিটিক্স ও ভূমি সামারি প্রতিবেদন দেখুন">
+        📊 অ্যানালিটিক্স
+      </button>
+      <button class="btn ghost btn-sm" id="btnExportJsonBackup" title="সমস্ত তথ্যের JSON ব্যাকআপ ফাইল ডাউনলোড করুন">
+        📥 সিস্টেম ব্যাকআপ
+      </button>
+      <label class="btn ghost btn-sm" style="cursor:pointer;" title="JSON ব্যাকআপ ফাইল থেকে তথ্য রিস্টোর করুন">
+        📤 ব্যাকআপ রিস্টোর
+        <input type="file" id="importJsonBackupFile" accept=".json" style="display:none;">
+      </label>
+      <button class="btn ghost btn-sm" id="btnOpenAuditLogModal" title="অ্যাক্টিভিটি ও সিকিউরিটি লগ দেখুন">
+        📜 অ্যাক্টিভিটি লগ
+      </button>
+    </div>
+
+    <div class="search-wrap" style="margin-top:12px;">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="searchBox" placeholder="হোল্ডিং নম্বর, দাগ নম্বর বা খতিয়ান নম্বর দিয়ে অনুসন্ধান করুন…">
     </div>
@@ -565,6 +582,73 @@
         </form>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- LAND DATA ANALYTICS & SUMMARY MODAL -->
+<div class="modal-overlay" id="analyticsModal">
+  <div class="modal-box analytics-modal-box">
+    <div class="modal-head">
+      <div class="auth-head-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>ভূমি ডাটা অ্যানালিটিক্স ও সামগ্রিক প্রতিবেদন</span>
+      </div>
+      <button class="modal-close" id="closeAnalyticsBtn" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="analytics-grid">
+        <div class="stat-big-card">
+          <div class="stat-big-val" id="statTotHoldings">০</div>
+          <div class="stat-big-lbl">মোট নিবন্ধিত হোল্ডিং</div>
+        </div>
+        <div class="stat-big-card">
+          <div class="stat-big-val" id="statTotKhatian">০</div>
+          <div class="stat-big-lbl">মোট অন্তর্ভুক্ত খতিয়ান</div>
+        </div>
+        <div class="stat-big-card">
+          <div class="stat-big-val" id="statTotPlots">০</div>
+          <div class="stat-big-lbl">মোট ক্যাডাস্ট্রাল দাগ</div>
+        </div>
+        <div class="stat-big-card">
+          <div class="stat-big-val" id="statTotArea">০.০০</div>
+          <div class="stat-big-lbl">মোট এন্ট্রি জমি (শতক)</div>
+        </div>
+      </div>
+
+      <div class="analytics-breakdown-card">
+        <h4>জমির স্থিতি ও কর্তন পরিমাপের চিত্র</h4>
+        <div class="breakdown-row">
+          <span>মোট কর্তনকৃত জমি:</span>
+          <strong id="statTotKorton" style="color:var(--danger)">০.০০ শতক</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>মোট অবশিষ্ট জমি:</span>
+          <strong id="statTotRemain" style="color:var(--accent)">০.০০ শতক</strong>
+        </div>
+        <div class="breakdown-row">
+          <span>গড় কর্তনের হার:</span>
+          <strong id="statAvgKortonPct">০%</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SYSTEM SECURITY AUDIT LOG MODAL -->
+<div class="modal-overlay" id="auditLogModal">
+  <div class="modal-box audit-modal-box">
+    <div class="modal-head">
+      <div class="auth-head-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>সিস্টেম অ্যাক্টিভিটি ও সিকিউরিটি অডিট লগ</span>
+      </div>
+      <button class="modal-close" id="closeAuditLogBtn" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="auditLogList" class="audit-log-list">
+        <!-- Renders log items dynamically -->
+      </div>
     </div>
   </div>
 </div>

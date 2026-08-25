@@ -1842,6 +1842,102 @@ html[data-theme="dark"] .holding-serial-badge{background:rgba(139,124,255,0.18);
   margin-top: 3px;
 }
 
+/* ── EXTRA ENTERPRISE TOOLS BAR & ANALYTICS STYLES ── */
+.extra-tools-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 11.5px;
+  border-radius: 16px;
+}
+.analytics-modal-box {
+  max-width: 520px;
+}
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-big-card {
+  background: var(--surface-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.stat-big-val {
+  font-family: var(--font-num);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+}
+.stat-big-lbl {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.analytics-breakdown-card {
+  background: var(--surface-3);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+.analytics-breakdown-card h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.breakdown-row:last-child {
+  border-bottom: none;
+}
+.audit-modal-box {
+  max-width: 560px;
+}
+.audit-log-list {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audit-item {
+  background: var(--surface-3);
+  border-left: 3px solid var(--primary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+}
+.audit-item-head {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.audit-item-time {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+.audit-item-desc {
+  color: var(--ink-soft);
+}
+
 /* ── RESPONSIVE ──────────────────────────────── */
 @media(max-width:540px){
   .hd{padding:16px 0 14px;}
