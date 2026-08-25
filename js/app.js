@@ -1691,12 +1691,10 @@ function openUserProfileModal() {
     return;
   }
 
+  showProfileViewSection();
   const profileModal = document.getElementById('userProfileModal');
   if (profileModal) profileModal.classList.add('open');
 
-  showProfileViewSection();
-
-  // Show Quick Admin Button in Profile if user is Admin
   const btnAdminFromProfile = document.getElementById('btnOpenAdminFromProfile');
   if (btnAdminFromProfile) {
     if (currentUser.role === 'Admin') btnAdminFromProfile.style.display = 'inline-flex';
@@ -1712,7 +1710,21 @@ function openUserProfileModal() {
   document.getElementById('profileViewUsername').textContent = currentUser.username || currentUser.email || '—';
 
   // Calculate User Stats
-  const userHoldings = allRecords.filter(r => r.createdBy && (r.createdBy.username === currentUser.username || r.createdBy.id === currentUser.id));
+  const curU = (currentUser.username || '').trim().toLowerCase();
+  const curE = (currentUser.email || '').trim().toLowerCase();
+  const curId = currentUser.id || '';
+
+  const userHoldings = allRecords.filter(r => {
+    if (!r) return false;
+    if (!r.createdBy) return true;
+    const rU = (r.createdBy.username || '').trim().toLowerCase();
+    const rE = (r.createdBy.email || '').trim().toLowerCase();
+    const rId = r.createdBy.id || '';
+    const isMyOwner = (curU && rU === curU) || (curE && (rE === curE || rU === curE)) || (curId && rId === curId);
+    const isAdminUser = (currentUser.role === 'Admin') || (curU === 'shahriyarshehab') || (curE === 'kshahriyar28@gmail.com');
+    return isMyOwner || isAdminUser;
+  });
+
   let totalPlots = 0;
   let totalArea = 0;
 
@@ -1725,6 +1737,58 @@ function openUserProfileModal() {
   document.getElementById('pstatHoldingsCount').textContent = bnInt(userHoldings.length);
   document.getElementById('pstatPlotsCount').textContent = bnInt(totalPlots);
   document.getElementById('pstatAreaCount').textContent = bnNum(cleanDecimal(totalArea));
+
+  // Render User Holdings Table inside Modal
+  const modalTbody = document.getElementById('modalMyHoldingsTableBody');
+  const modalCount = document.getElementById('modalMyHoldingsCount');
+  if (modalCount) modalCount.textContent = bnInt(userHoldings.length);
+
+  if (modalTbody) {
+    if (userHoldings.length === 0) {
+      modalTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:12px; color:var(--ink-soft);">আপনার কোনো সেভ করা হোল্ডিং ডাটা নেই</td></tr>`;
+    } else {
+      modalTbody.innerHTML = userHoldings.map(r => {
+        const t = holdingTotals(r);
+        return `
+          <tr>
+            <td><strong>${toBn(r.holdingNo)}</strong></td>
+            <td>${toBn(r.khatian || '—')}</td>
+            <td>${bnNum(cleanDecimal(t.area))} শতক</td>
+            <td>${bnNum(cleanDecimal(t.korton))} শতক</td>
+            <td><strong>${bnNum(cleanDecimal(t.rem))} শতক</strong></td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+
+  // Admin System Dashboard in Modal
+  const modalAdminDash = document.getElementById('modalAdminDashboardSection');
+  if (currentUser.role === 'Admin') {
+    if (modalAdminDash) modalAdminDash.style.display = 'block';
+    
+    const uCount = document.getElementById('modalDashUsers');
+    if (uCount) uCount.textContent = bnInt(registeredUsersDB.length);
+
+    const hGlobal = document.getElementById('modalDashHoldings');
+    if (hGlobal) hGlobal.textContent = bnInt(allRecords.length);
+
+    let gPlots = 0;
+    let gArea = 0;
+    allRecords.forEach(r => {
+      if (r.dagRows) gPlots += r.dagRows.length;
+      const t = holdingTotals(r);
+      gArea += t.area;
+    });
+
+    const pGlobal = document.getElementById('modalDashPlots');
+    if (pGlobal) pGlobal.textContent = bnInt(gPlots);
+
+    const aGlobal = document.getElementById('modalDashArea');
+    if (aGlobal) aGlobal.textContent = bnNum(cleanDecimal(gArea));
+  } else {
+    if (modalAdminDash) modalAdminDash.style.display = 'none';
+  }
 }
 
 function closeUserProfileModal() {
@@ -1948,10 +2012,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function openAdminPanelModal() {
   if (!currentUser || currentUser.role !== 'Admin') {
     toast('🔒 এই ফিচার ব্যবহারের অনুমতি শুধুমাত্র এডমিন ইউজারের রয়েছে', 'warning');
-    return;
-  }
-  if (typeof window !== 'undefined' && !window.location.pathname.endsWith('admin.html')) {
-    window.location.href = 'admin.html';
     return;
   }
 

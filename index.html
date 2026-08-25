@@ -535,27 +535,71 @@
           </div>
         </div>
 
-        <!-- QUICK POPUP ACTIONS & LINK TO FULL PROFILE PAGE & ADMIN PAGE -->
-        <div class="btn-row" style="margin-top:20px; flex-direction:column; gap:10px;">
-          <a href="profile.html" class="btn primary" style="width:100%; justify-content:center; padding:11px; text-decoration:none; font-weight:700;">
-            👤 সম্পূর্ণ বিস্তারিত প্রোফাইল পেজে যান ➔
-          </a>
-          
-          <a href="admin.html" class="btn primary" id="btnOpenAdminFromProfile" style="display:none; width:100%; justify-content:center; padding:10px; text-decoration:none; background:var(--primary); font-weight:700;">
-            👑 এডমিন প্যানেল (আলাদা পেজ) ➔
-          </a>
-
-          <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
-            <button type="button" class="btn ghost" id="btnExportMyDataJson" style="flex:1;" title="আপনার সেভ করা ডাটা ডাউনলোড করুন">
-              📥 ডাটা এক্সপোর্ট
-            </button>
-            <button type="button" class="btn ghost" id="btnEditProfileOpen" style="flex:1;">
-              ✏️ কুইক সংশোধন
-            </button>
-            <button type="button" class="btn danger" id="btnProfileLogout" style="flex:1;" onclick="logoutUser()">
-              🚪 লগআউট
+        <!-- EXCLUSIVE ADMIN DASHBOARD SECTION IN PROFILE MODAL (FOR ADMIN ROLE) -->
+        <div id="modalAdminDashboardSection" style="display:none; margin-top:16px; border:1px solid var(--line); border-radius:var(--radius-md); padding:14px; background:var(--surface-card);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <strong style="color:var(--primary); font-size:14px;">👑 এডমিন সিস্টেম ড্যাশবোর্ড ও ওভারভিউ</strong>
+            <button type="button" class="btn primary btn-sm" onclick="closeUserProfileModal(); openAdminPanelModal();" style="padding:3px 10px; font-size:11px;">
+              এডমিন কন্ট্রোল সেন্টার ➔
             </button>
           </div>
+          <div class="analytics-grid" style="grid-template-columns: repeat(4, 1fr); gap:8px;">
+            <div class="stat-big-card" style="padding:8px;">
+              <div class="stat-big-val" id="modalDashUsers" style="font-size:16px;">০</div>
+              <div class="stat-big-lbl" style="font-size:10px;">ইউজারবৃন্দ</div>
+            </div>
+            <div class="stat-big-card" style="padding:8px;">
+              <div class="stat-big-val" id="modalDashHoldings" style="font-size:16px;">০</div>
+              <div class="stat-big-lbl" style="font-size:10px;">গ্লোবাল হোল্ডিং</div>
+            </div>
+            <div class="stat-big-card" style="padding:8px;">
+              <div class="stat-big-val" id="modalDashPlots" style="font-size:16px;">০</div>
+              <div class="stat-big-lbl" style="font-size:10px;">দাগ সংখ্যা</div>
+            </div>
+            <div class="stat-big-card" style="padding:8px;">
+              <div class="stat-big-val" id="modalDashArea" style="font-size:16px;">০.০০</div>
+              <div class="stat-big-lbl" style="font-size:10px;">রেকর্ড জমি</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USER SAVED HOLDINGS LIST IN PROFILE MODAL -->
+        <div style="margin-top:16px;">
+          <strong style="font-size:13.5px; color:var(--ink); display:block; margin-bottom:8px;">
+            📂 আমার এন্ট্রি করা সংরক্ষিত হোল্ডিংসমূহ (<span id="modalMyHoldingsCount">০</span>)
+          </strong>
+          <div class="admin-table-wrap" style="max-height:180px;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>হোল্ডিং নং</th>
+                  <th>খতিয়ান নং</th>
+                  <th>মোট জমি</th>
+                  <th>কর্তন জমি</th>
+                  <th>অবশিষ্ট</th>
+                </tr>
+              </thead>
+              <tbody id="modalMyHoldingsTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SPA ACTION TOOLBAR -->
+        <div class="btn-row" style="margin-top:18px; flex-wrap:wrap; gap:8px; justify-content:space-between;">
+          <button type="button" class="btn primary btn-sm" id="btnOpenAdminFromProfile" style="display:none; background:var(--primary);" onclick="closeUserProfileModal(); openAdminPanelModal();">
+            👑 এডমিন প্যানেল
+          </button>
+          <button type="button" class="btn ghost btn-sm" id="btnExportMyDataJson" title="আপনার সেভ করা ডাটা ডাউনলোড করুন">
+            📥 ডাটা এক্সপোর্ট
+          </button>
+          <button type="button" class="btn ghost btn-sm" id="btnEditProfileOpen">
+            ✏️ প্রোফাইল সংশোধন
+          </button>
+          <button type="button" class="btn danger btn-sm" id="btnProfileLogout" onclick="logoutUser()">
+            🚪 লগআউট
+          </button>
         </div>
       </div>
 
