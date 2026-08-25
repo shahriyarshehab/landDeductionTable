@@ -135,7 +135,10 @@
 
 <script src="js/app.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
+    initUserAuth();
+    await loadAll();
+
     if (!currentUser || currentUser.role !== 'Admin') {
       toast('🔒 শুধুমাত্র এডমিন ইউজারের এই পেজে প্রবেশের অনুমতি রয়েছে', 'error');
       setTimeout(() => { window.location.href = 'index.html'; }, 1000);

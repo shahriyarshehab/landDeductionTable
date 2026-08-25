@@ -285,6 +285,9 @@
 <script src="js/app.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
+    initUserAuth();
+    await loadAll();
+
     if (!currentUser) {
       window.location.href = 'login.html';
       return;
@@ -299,11 +302,19 @@
     document.getElementById('pageUserUsername').textContent = currentUser.username || currentUser.email || '—';
     document.getElementById('pageUserCreated').textContent = currentUser.createdAt ? currentUser.createdAt.split('T')[0] : '২০২৬-০৮-২৫';
 
+    const curU = (currentUser.username || '').toLowerCase();
+    const curE = (currentUser.email || '').toLowerCase();
+    const curId = currentUser.id;
+
     // Filter Admin's / User's OWN Holdings
-    const myHoldings = allRecords.filter(r => r.createdBy && (
-      (r.createdBy.username && r.createdBy.username.toLowerCase() === (currentUser.username || '').toLowerCase()) ||
-      (r.createdBy.id && r.createdBy.id === currentUser.id)
-    ));
+    const myHoldings = allRecords.filter(r => {
+      if (!r) return false;
+      if (!r.createdBy) return true; // Legacy unassigned records
+      const rU = (r.createdBy.username || '').toLowerCase();
+      const rE = (r.createdBy.email || '').toLowerCase();
+      const rId = r.createdBy.id;
+      return rU === curU || (curE && rE === curE) || (curId && rId === curId) || (currentUser.role === 'Admin' && (rU === 'shahriyarshehab' || rE === 'kshahriyar28@gmail.com'));
+    });
 
     let myPlots = 0;
     let myArea = 0;
