@@ -1655,16 +1655,23 @@ function openUserProfileModal() {
 
   showProfileViewSection();
 
+  // Show Quick Admin Button in Profile if user is Admin
+  const btnAdminFromProfile = document.getElementById('btnOpenAdminFromProfile');
+  if (btnAdminFromProfile) {
+    if (currentUser.role === 'Admin') btnAdminFromProfile.style.display = 'inline-flex';
+    else btnAdminFromProfile.style.display = 'none';
+  }
+
   // Populate Profile View
   const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
   document.getElementById('profileAvatarLarge').textContent = initial;
   document.getElementById('profileViewName').textContent = currentUser.name || 'ইউজার';
   document.getElementById('profileViewRole').textContent = currentUser.role || 'DMF';
   document.getElementById('profileViewOffice').textContent = currentUser.office || 'উপজেলা ভূমি অফিস';
-  document.getElementById('profileViewUsername').textContent = currentUser.username || '—';
+  document.getElementById('profileViewUsername').textContent = currentUser.username || currentUser.email || '—';
 
   // Calculate User Stats
-  const userHoldings = allRecords.filter(r => r.createdBy && r.createdBy.username === currentUser.username);
+  const userHoldings = allRecords.filter(r => r.createdBy && (r.createdBy.username === currentUser.username || r.createdBy.id === currentUser.id));
   let totalPlots = 0;
   let totalArea = 0;
 
@@ -1696,7 +1703,7 @@ function showProfileEditSection() {
   // Populate Edit Fields
   document.getElementById('editFullName').value = currentUser.name || '';
   const editUserEl = document.getElementById('editUsername');
-  if (editUserEl) editUserEl.value = currentUser.username || '';
+  if (editUserEl) editUserEl.value = currentUser.username || currentUser.email || '';
   document.getElementById('editRole').value = currentUser.role || 'DMF';
   document.getElementById('editOffice').value = currentUser.office || '';
   document.getElementById('editPassword').value = '';
@@ -1718,29 +1725,16 @@ async function saveProfileEdit() {
     return;
   }
 
-  const oldUsername = currentUser.username;
+  const oldUsername = currentUser.username || '';
   const newUsername = username;
 
-  if (newUsername.toLowerCase() !== oldUsername.toLowerCase()) {
-    const exists = registeredUsersDB.some(u => u.id !== currentUser.id && u.username.toLowerCase() === newUsername.toLowerCase());
+  if (oldUsername && newUsername.toLowerCase() !== oldUsername.toLowerCase()) {
+    const exists = registeredUsersDB.some(u => u.id !== currentUser.id && ((u.username && u.username.toLowerCase() === newUsername.toLowerCase()) || (u.email && u.email.toLowerCase() === newUsername.toLowerCase())));
     if (exists) {
       toast('এই ইউজার আইডিটি অন্য একাউন্টে ব্যবহৃত হচ্ছে', 'error');
       return;
     }
     currentUser.username = newUsername;
-
-    // Migrate user's saved holdings to new username
-    for (let r of allRecords) {
-      if (r.createdBy && (r.createdBy.username === oldUsername || r.createdBy.id === currentUser.id)) {
-        r.createdBy.username = newUsername;
-        r.createdBy.name = name;
-        r.createdBy.role = role;
-        r.createdBy.office = office;
-        try {
-          await storage.set('holding:' + r.id, JSON.stringify(r));
-        } catch (e) {}
-      }
-    }
   }
 
   currentUser.name = name;
@@ -1751,19 +1745,55 @@ async function saveProfileEdit() {
     currentUser.passwordHash = await hashPassword(pwd.trim());
   }
 
-  // Update active user and database
-  localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
-  const idx = registeredUsersDB.findIndex(u => u.id === currentUser.id);
-  if (idx !== -1) {
-    registeredUsersDB[idx] = { ...currentUser };
-    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  // Update user holdings metadata
+  for (let r of allRecords) {
+    if (r.createdBy && (r.createdBy.username === oldUsername || r.createdBy.id === currentUser.id)) {
+      r.createdBy.username = newUsername;
+      r.createdBy.name = name;
+      r.createdBy.role = role;
+      r.createdBy.office = currentUser.office;
+      try {
+        await storage.set('holding:' + r.id, JSON.stringify(r));
+      } catch (e) {}
+    }
   }
+
+  // Update active user session
+  localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+
+  // Sync to registered users database
+  const idx = registeredUsersDB.findIndex(u => u.id === currentUser.id || u.username === oldUsername);
+  if (idx !== -1) {
+    registeredUsersDB[idx] = { ...registeredUsersDB[idx], ...currentUser };
+  } else {
+    registeredUsersDB.push({ ...currentUser });
+  }
+  localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
 
   renderUserProfileWidget();
   showProfileViewSection();
   openUserProfileModal();
   refreshListDisplay();
-  toast('ইউজার প্রোফাইল ও ইউজার আইডি সফলভাবে আপডেট করা হয়েছে ✓', 'success');
+  toast('প্রোফাইল তথ্য, পদবী ও রোল সফলভাবে আপডেট করা হয়েছে ✓', 'success');
+}
+
+function exportMyDataJson() {
+  if (!currentUser) return;
+  const userHoldings = allRecords.filter(r => r.createdBy && (r.createdBy.username === currentUser.username || r.createdBy.id === currentUser.id));
+  const data = {
+    exportDate: new Date().toISOString(),
+    exportedBy: currentUser,
+    totalHoldings: userHoldings.length,
+    holdings: userHoldings
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `LMAP_MyData_${currentUser.username}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('আপনার নিজস্ব হোল্ডিং ডাটা এক্সপোর্ট সম্পন্ন হয়েছে ✓', 'success');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1830,6 +1860,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnProfileLogout = document.getElementById('btnProfileLogout');
   if (btnProfileLogout) btnProfileLogout.addEventListener('click', logoutUser);
+
+  const btnExportMyDataJson = document.getElementById('btnExportMyDataJson');
+  if (btnExportMyDataJson) btnExportMyDataJson.addEventListener('click', exportMyDataJson);
 
   // Extra Enterprise Features Event Listeners
   const btnOpenAnalyticsModal = document.getElementById('btnOpenAnalyticsModal');
