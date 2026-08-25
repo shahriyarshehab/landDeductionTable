@@ -601,16 +601,6 @@ document.getElementById('toggleKortonModeBtn').addEventListener('click', () => {
   renderDagTable();
 });
 
-const addDagRowBtn = document.getElementById('addDagRowBtn');
-if (addDagRowBtn) {
-  addDagRowBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    dagRows.push(newDagRow());
-    renderDagTable({ index: dagRows.length - 1, field: 'dagNo' });
-    toast('নতুন দাগের সারি যুক্ত হয়েছে ✓', 'info');
-  });
-}
-
 function clearForm(){
   khatianInput.value='';
   holdingNoInput.value='';
