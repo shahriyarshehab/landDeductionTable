@@ -1402,17 +1402,29 @@ function renderUserProfileWidget() {
   if (currentUser) {
     const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
     widget.innerHTML = `
-      <div class="user-badge-card" id="btnOpenProfileModal" title="ইউজার প্রোফাইল ও একাউন্ট দেখুন">
-        <div class="user-avatar-mini">${initial}</div>
-        <div class="user-badge-info">
-          <span class="user-name-text">${currentUser.name}</span>
-          <span class="user-role-badge">${currentUser.role}</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="user-badge-card" id="btnOpenProfileModal" title="ইউজার প্রোফাইল ও একাউন্ট দেখুন">
+          <div class="user-avatar-mini">${initial}</div>
+          <div class="user-badge-info">
+            <span class="user-name-text">${currentUser.name}</span>
+            <span class="user-role-badge">${currentUser.role}</span>
+          </div>
         </div>
+        <button class="btn danger btn-sm" id="btnHeaderQuickLogout" type="button" title="লগআউট করুন" style="padding:4px 10px; font-size:11.5px; border-radius:14px;">
+          লগআউট
+        </button>
       </div>
     `;
     const btnProfile = document.getElementById('btnOpenProfileModal');
     if (btnProfile) {
       btnProfile.addEventListener('click', openUserProfileModal);
+    }
+    const btnQuickLogout = document.getElementById('btnHeaderQuickLogout');
+    if (btnQuickLogout) {
+      btnQuickLogout.addEventListener('click', (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        logoutUser();
+      });
     }
   } else {
     widget.innerHTML = `
@@ -1550,13 +1562,33 @@ async function registerUser(fullName, username, password, role, office) {
 }
 
 function logoutUser() {
+  try {
+    if (typeof logAuditActivity === 'function') {
+      logAuditActivity('ইউজার লগআউট', currentUser ? `${currentUser.name} সফলভাবে লগআউট করেছেন` : '');
+    }
+  } catch (e) {}
+
   currentUser = null;
-  localStorage.removeItem('lmap_active_user');
-  userFilterMode = 'all';
-  renderUserProfileWidget();
-  closeUserProfileModal();
-  refreshListDisplay();
-  toast('সফলভাবে লগআউট করা হয়েছে', 'info');
+  userFilterMode = 'my';
+
+  try {
+    localStorage.removeItem('lmap_active_user');
+    sessionStorage.clear();
+  } catch (e) {}
+
+  try {
+    renderUserProfileWidget();
+  } catch (e) {}
+
+  try {
+    closeUserProfileModal();
+  } catch (e) {}
+
+  try {
+    refreshListDisplay();
+  } catch (e) {}
+
+  toast('সফলভাবে লগআউট করা হয়েছে 🚪', 'info');
 }
 
 /* ── USER PROFILE VIEW & EDIT CONTROLLER ── */
