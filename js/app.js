@@ -675,6 +675,15 @@ async function saveHolding(){
   try{
     const res=await storage.set('holding:'+id,JSON.stringify(record));
     if(!res){ toast('সংরক্ষণ ব্যর্থ','error'); return; }
+
+    const existingIdx = allRecords.findIndex(r => r.id === id);
+    if (existingIdx !== -1) {
+      allRecords[existingIdx] = record;
+    } else {
+      allRecords.push(record);
+    }
+    try { localStorage.setItem('lmap_holdings_db', JSON.stringify(allRecords)); } catch(e){}
+
     toast('সংরক্ষণ সম্পন্ন ✓ (' + UNIT_LABEL[areaUnit] + ')','success');
     clearForm();
     await loadAll();
@@ -1414,13 +1423,39 @@ async function loadAll(){
     for(const k of keys){
       try{ const r=await storage.get(k,false); if(r&&r.value) records.push(JSON.parse(r.value)); }catch(e){}
     }
+
+    // Dual Sync: If storage.list returned 0 keys, load from lmap_holdings_db backup!
+    if (records.length === 0) {
+      try {
+        const dbBackup = localStorage.getItem('lmap_holdings_db');
+        if (dbBackup) {
+          const parsed = JSON.parse(dbBackup);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            records.push(...parsed);
+          }
+        }
+      } catch(e) {}
+    }
+
     allRecords=records;
+
+    if (allRecords.length > 0) {
+      try { localStorage.setItem('lmap_holdings_db', JSON.stringify(allRecords)); } catch(e){}
+    }
+
     refreshListDisplay();
     const sb = document.getElementById('searchBox');
     if (sb) sb.value='';
     return allRecords;
   }catch(err){
     console.error(err);
+    try {
+      const dbBackup = localStorage.getItem('lmap_holdings_db');
+      if (dbBackup) {
+        allRecords = JSON.parse(dbBackup) || [];
+        return allRecords;
+      }
+    } catch(e) {}
     const hl = document.getElementById('holdingsList');
     if (hl) hl.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
     return [];
