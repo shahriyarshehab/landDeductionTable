@@ -535,15 +535,27 @@
           </div>
         </div>
 
-        <div class="btn-row" style="margin-top:20px; flex-wrap:wrap; gap:8px; justify-content:space-between;">
-          <button type="button" class="btn primary" id="btnOpenAdminFromProfile" style="display:none; background:var(--primary);" onclick="closeUserProfileModal(); openAdminPanelModal();">
-            👑 এডমিন প্যানেল খুলুন
-          </button>
-          <button type="button" class="btn ghost" id="btnExportMyDataJson" title="আপনার নিজের সেভ করা ডাটা ডাউনলোড করুন">
-            📥 আমার ডাটা এক্সপোর্ট
-          </button>
-          <button type="button" class="btn ghost" id="btnEditProfileOpen">প্রোফাইল সংশোধন</button>
-          <button type="button" class="btn danger" id="btnProfileLogout" onclick="logoutUser()">লগআউট</button>
+        <!-- QUICK POPUP ACTIONS & LINK TO FULL PROFILE PAGE & ADMIN PAGE -->
+        <div class="btn-row" style="margin-top:20px; flex-direction:column; gap:10px;">
+          <a href="profile.html" class="btn primary" style="width:100%; justify-content:center; padding:11px; text-decoration:none; font-weight:700;">
+            👤 সম্পূর্ণ বিস্তারিত প্রোফাইল পেজে যান ➔
+          </a>
+          
+          <a href="admin.html" class="btn primary" id="btnOpenAdminFromProfile" style="display:none; width:100%; justify-content:center; padding:10px; text-decoration:none; background:var(--primary); font-weight:700;">
+            👑 এডমিন প্যানেল (আলাদা পেজ) ➔
+          </a>
+
+          <div style="display:flex; gap:8px; width:100%; margin-top:4px;">
+            <button type="button" class="btn ghost" id="btnExportMyDataJson" style="flex:1;" title="আপনার সেভ করা ডাটা ডাউনলোড করুন">
+              📥 ডাটা এক্সপোর্ট
+            </button>
+            <button type="button" class="btn ghost" id="btnEditProfileOpen" style="flex:1;">
+              ✏️ কুইক সংশোধন
+            </button>
+            <button type="button" class="btn danger" id="btnProfileLogout" style="flex:1;" onclick="logoutUser()">
+              🚪 লগআউট
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>সিস্টেম এডমিন ও ইউজার ম্যানেজমেন্ট পোর্টাল — LMAP</title>
+
+  <!-- GOOGLE FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- MAIN STYLESHEET -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 40px;
+    }
+    .admin-page-container {
+      max-width: 1050px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .admin-section-card {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="hd">
+  <div class="wrap hd-inner" style="justify-content:space-between;">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>👑 LMAP সিস্টেম এডমিন ও ইউজার ম্যানেজমেন্ট কন্ট্রোল</h1>
+        <p>ভূমি তথ্য ডিজিটাল ব্যবস্থাপনাসমূহ • Ministry of Land & UNDP</p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn ghost btn-sm" style="text-decoration:none;">
+        ⬅️ মূল টেবিল পেজে ফিরুন
+      </a>
+      <button class="theme-btn-corner" id="themeToggle" title="থিম পরিবর্তন">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-page-container">
+
+  <!-- ADMIN OVERVIEW STATS -->
+  <div class="admin-section-card">
+    <div class="profile-stats-grid">
+      <div class="pstat-card">
+        <div class="pstat-val" id="adminPageUserCount">০</div>
+        <div class="pstat-lbl">নিবন্ধিত ইউজারবৃন্দ</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="adminPageHoldingsCount">০</div>
+        <div class="pstat-lbl">মোট সিস্টেম হোল্ডিং ডাটা</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" style="color:var(--accent);">Active</div>
+        <div class="pstat-lbl">সিস্টেম সিকিউরিটি এনক্রিপশন</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTERED USERS MANAGEMENT SECTION -->
+  <div class="admin-section-card">
+    <h3 style="font-size:18px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:8px;">
+      👥 নিবন্ধিত ইউজারবৃন্দ ও ভূমিকা (Role) ব্যবস্থাপনা
+    </h3>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ইউজার নাম</th>
+            <th>ইউজার আইডি/ইমেইল</th>
+            <th>পদবী/রোল</th>
+            <th>কার্যালয়</th>
+            <th>হোল্ডিং সংখ্যা</th>
+            <th>অ্যাকশন</th>
+          </tr>
+        </thead>
+        <tbody id="adminUserListBody">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ALL SYSTEM HOLDINGS INSPECTION SECTION -->
+  <div class="admin-section-card">
+    <h3 style="font-size:18px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:8px;">
+      🌐 সমস্ত সিস্টেম হোল্ডিং মডারেশন ও ওভারভিউ
+    </h3>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>হোল্ডিং নং</th>
+            <th>খতিয়ান নং</th>
+            <th>মালিক/এন্ট্রি কারী</th>
+            <th>দাগ সংখ্যা</th>
+            <th>অ্যাকশন</th>
+          </tr>
+        </thead>
+        <tbody id="adminHoldingListBody">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!currentUser || currentUser.role !== 'Admin') {
+      toast('🔒 শুধুমাত্র এডমিন ইউজারের এই পেজে প্রবেশের অনুমতি রয়েছে', 'error');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+      return;
+    }
+
+    renderAdminUsersTable();
+    renderAdminHoldingsTable();
+
+    const uCount = document.getElementById('adminPageUserCount');
+    if (uCount) uCount.textContent = bnInt(registeredUsersDB.length);
+
+    const hCount = document.getElementById('adminPageHoldingsCount');
+    if (hCount) hCount.textContent = bnInt(allRecords.length);
+  });
+</script>
+</body>
+</html>

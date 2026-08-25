@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ইউজার প্রোফাইল ও একাউন্ট পোর্টাল — LMAP</title>
+
+  <!-- GOOGLE FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- MAIN STYLESHEET -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 40px;
+    }
+    .profile-page-container {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .profile-card-large {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(12px);
+      margin-bottom: 24px;
+    }
+    .profile-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .profile-avatar-giant {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow);
+    }
+    .profile-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .profile-holdings-card {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<header class="hd">
+  <div class="wrap hd-inner" style="justify-content:space-between;">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>LMAP প্রফেশনাল ইউজার প্রোফাইল</h1>
+        <p>ভূমি তথ্য ডিজিটাল ব্যবস্থাপনাসমূহ • Ministry of Land & UNDP</p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <a href="index.html" class="btn ghost btn-sm" style="text-decoration:none;">
+        ⬅️ মূল টেবিল পেজে ফিরুন
+      </a>
+      <button class="theme-btn-corner" id="themeToggle" title="থিম পরিবর্তন">
+        <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="profile-page-container">
+
+  <!-- MAIN PROFILE SUMMARY CARD -->
+  <div class="profile-card-large">
+    <div class="profile-top-bar">
+      <div class="profile-header-meta">
+        <div class="profile-avatar-giant" id="pageAvatar">U</div>
+        <div>
+          <h2 id="pageUserName" style="font-size:24px; font-weight:800; margin:0;">ইউজার নাম</h2>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <span class="user-role-badge" id="pageUserRole" style="font-size:12px; padding:3px 10px;">DMF</span>
+            <span style="font-size:12.5px; color:var(--ink-soft);" id="pageUserOffice">উপজেলা ভূমি অফিস</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn primary btn-sm" id="btnPageOpenAdmin" style="display:none; background:var(--primary);" onclick="window.location.href='admin.html'">
+          👑 এডমিন প্যানেল
+        </button>
+        <button class="btn ghost btn-sm" id="btnPageExportJson">
+          📥 আমার ডাটা এক্সপোর্ট (JSON)
+        </button>
+        <button class="btn danger btn-sm" onclick="logoutUser()">
+          🚪 লগআউট
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="profile-stats-grid">
+      <div class="pstat-card">
+        <div class="pstat-val" id="pageHoldingsCount">০</div>
+        <div class="pstat-lbl">মোট সেভ করা হোল্ডিং</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="pagePlotsCount">০</div>
+        <div class="pstat-lbl">মোট দাগ সংখ্যা</div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-val" id="pageAreaCount">০.০০</div>
+        <div class="pstat-lbl">মোট জমির পরিমাণ (শতক)</div>
+      </div>
+    </div>
+
+    <!-- PROFILE DETAILS TABLE -->
+    <div class="profile-details-list" style="margin-top:20px;">
+      <div class="pdetail-item">
+        <span class="pdetail-label">ইউজার আইডি / ইমেইল:</span>
+        <strong class="pdetail-val" id="pageUserUsername">shehab@land.gov.bd</strong>
+      </div>
+      <div class="pdetail-item">
+        <span class="pdetail-label">পাসওয়ার্ড নিরাপত্তা:</span>
+        <span class="pdetail-val" style="color:var(--primary); font-weight:bold;">SHA-256 Cryptographic Hash 🔒</span>
+      </div>
+      <div class="pdetail-item">
+        <span class="pdetail-label">একাউন্ট তৈরীর তারিখ:</span>
+        <span class="pdetail-val" id="pageUserCreated">২০২৬-০৮-২৫</span>
+      </div>
+      <div class="pdetail-item">
+        <span class="pdetail-label">সেশন অবস্থা:</span>
+        <span class="pdetail-val" style="color:var(--accent); font-weight:bold;">সক্রিয় (Active Officer)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE FORM SECTION -->
+  <div class="profile-holdings-card">
+    <h3 style="font-size:18px; margin-bottom:16px; border-bottom:1px solid var(--line); padding-bottom:8px;">
+      ✏️ প্রোফাইল তথ্য ও পদবী রোল সংশোধন করুন
+    </h3>
+    <form id="pageEditProfileForm" method="dialog">
+      <div class="field-grid" style="margin-bottom:14px;">
+        <div class="field-wrap">
+          <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="pageEditFullName" required>
+        </div>
+        <div class="field-wrap">
+          <label>ইউজার আইডি / ইমেইল <span style="color:var(--danger)">*</span></label>
+          <input type="email" id="pageEditUsername" required>
+        </div>
+      </div>
+
+      <div class="field-grid" style="margin-bottom:14px;">
+        <div class="field-wrap">
+          <label>পদবী / রোল <span style="color:var(--danger)">*</span></label>
+          <select id="pageEditRole">
+            <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+            <option value="DMF">ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+            <option value="Land Officer">সহকারী কমিশনার (ভূমি)</option>
+            <option value="Admin">সিস্টেম এডমিন (Admin)</option>
+          </select>
+        </div>
+        <div class="field-wrap">
+          <label>নতুন পাসওয়ার্ড <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
+          <input type="password" id="pageEditPassword" placeholder="নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে">
+        </div>
+      </div>
+
+      <div class="field-wrap" style="margin-bottom:18px;">
+        <label>কার্যালয় / স্থান</label>
+        <input type="text" id="pageEditOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
+      </div>
+
+      <button type="submit" class="btn primary" style="padding:10px 20px; font-weight:700;">
+        পরিবর্তন সংরক্ষণ করুন
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!currentUser) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Populate Page Elements
+    const initial = (currentUser.name || 'U').charAt(0).toUpperCase();
+    document.getElementById('pageAvatar').textContent = initial;
+    document.getElementById('pageUserName').textContent = currentUser.name || 'ইউজার';
+    document.getElementById('pageUserRole').textContent = currentUser.role || 'DMF';
+    document.getElementById('pageUserOffice').textContent = currentUser.office || 'উপজেলা ভূমি অফিস';
+    document.getElementById('pageUserUsername').textContent = currentUser.username || currentUser.email || '—';
+    document.getElementById('pageUserCreated').textContent = currentUser.createdAt ? currentUser.createdAt.split('T')[0] : '২০২৬-০৮-২৫';
+
+    if (currentUser.role === 'Admin') {
+      document.getElementById('btnPageOpenAdmin').style.display = 'inline-flex';
+    }
+
+    // Populate Edit Fields
+    document.getElementById('pageEditFullName').value = currentUser.name || '';
+    document.getElementById('pageEditUsername').value = currentUser.username || currentUser.email || '';
+    document.getElementById('pageEditRole').value = currentUser.role || 'DMF';
+    document.getElementById('pageEditOffice').value = currentUser.office || '';
+
+    // Handle Edit Submit
+    document.getElementById('pageEditProfileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('editFullName').value = document.getElementById('pageEditFullName').value;
+      document.getElementById('editUsername').value = document.getElementById('pageEditUsername').value;
+      document.getElementById('editRole').value = document.getElementById('pageEditRole').value;
+      document.getElementById('editOffice').value = document.getElementById('pageEditOffice').value;
+      document.getElementById('editPassword').value = document.getElementById('pageEditPassword').value;
+      await saveProfileEdit();
+      setTimeout(() => { window.location.reload(); }, 600);
+    });
+
+    document.getElementById('btnPageExportJson').addEventListener('click', exportMyDataJson);
+  });
+</script>
+</body>
+</html>

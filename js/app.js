@@ -1909,6 +1909,10 @@ function openAdminPanelModal() {
     toast('🔒 এই ফিচার ব্যবহারের অনুমতি শুধুমাত্র এডমিন ইউজারের রয়েছে', 'warning');
     return;
   }
+  if (typeof window !== 'undefined' && !window.location.pathname.endsWith('admin.html')) {
+    window.location.href = 'admin.html';
+    return;
+  }
 
   const modal = document.getElementById('adminPanelModal');
   if (modal) modal.classList.add('open');
