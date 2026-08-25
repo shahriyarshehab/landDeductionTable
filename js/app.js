@@ -1074,7 +1074,19 @@ calcClearBtn.addEventListener('click', () => {
 /* ── HOLDINGS LIST RENDER (WITH NO LOGO ON SINGLE EXCEL BUTTON) ── */
 function renderHoldingsList(records){
   if(records.length===0){
-    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">📂</div><strong>কোনো কর্তনকৃত হোল্ডিং নেই</strong></div>`;
+    if (!currentUser) {
+      holdingsList.innerHTML=`
+        <div class="empty" style="padding:28px 16px;">
+          <div class="empty-icon">🔒</div>
+          <strong>প্রাইভেট ডাটা সিকিউরিটি প্রটেক্টেড</strong>
+          <div style="font-size:12px; color:var(--ink-soft); margin-top:6px; max-width:400px; line-height:1.45;">
+            আপনার প্রাইভেট এন্ট্রি করা ভূমি কর্তন ও খতিয়ান তথ্য নিরাপদে দেখতে এবং নতুন ডাটা তৈরি করতে অফিশিয়াল ইউজার হিসেবে লগইন করুন।
+          </div>
+          <button class="btn primary" style="margin-top:14px; padding:8px 20px; font-weight:bold;" onclick="openAuthModal()">🔑 প্রফেশনাল ইউজার লগইন করুন</button>
+        </div>`;
+    } else {
+      holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">📂</div><strong>আপনার তালিকায় কোনো কর্তনকৃত হোল্ডিং নেই</strong></div>`;
+    }
     return;
   }
   holdingsList.innerHTML='';
@@ -1211,37 +1223,88 @@ function renderHoldingsList(records){
 let allRecords=[];
 let userFilterMode = 'my'; // 'my' vs 'all'
 
+/* ── CRYPTOGRAPHIC SECURITY & PRIVACY LIBRARY (SHA-256 HASHING) ── */
+async function hashPassword(plainText) {
+  if (!plainText) return '';
+  try {
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+      const msgUint8 = new TextEncoder().encode(plainText);
+      const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch (e) {}
+  let hash = 0;
+  for (let i = 0; i < plainText.length; i++) {
+    const char = plainText.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0;
+  }
+  return 'h_' + Math.abs(hash).toString(16);
+}
+
+/* ── STRICT APP PRIVACY ACCESS CONTROLLER ── */
 function applyUserFilter(records) {
   const myDataCountEl = document.getElementById('myDataCount');
   const allDataCountEl = document.getElementById('allDataCount');
   const noticeEl = document.getElementById('userFilterNotice');
-
-  const myRecords = records.filter(r => currentUser && r.createdBy && r.createdBy.username === currentUser.username);
-  
-  if (myDataCountEl) myDataCountEl.textContent = bnInt(myRecords.length);
-  if (allDataCountEl) allDataCountEl.textContent = bnInt(records.length);
-
   const filterMyDataBtn = document.getElementById('filterMyDataBtn');
   const filterAllDataBtn = document.getElementById('filterAllDataBtn');
 
+  // CASE 1: UNAUTHENTICATED VISITOR -> ZERO DATA VISIBILITY (STRICT PRIVACY LOCK)
   if (!currentUser) {
-    userFilterMode = 'all';
-    if (filterMyDataBtn) filterMyDataBtn.classList.remove('active');
-    if (filterAllDataBtn) filterAllDataBtn.classList.add('active');
-    if (noticeEl) noticeEl.textContent = 'সংরক্ষিত সকল ইউজার ডাটা প্রদর্শিত হচ্ছে (লগইন করুন)';
-    return records;
+    if (myDataCountEl) myDataCountEl.textContent = '০';
+    if (allDataCountEl) allDataCountEl.textContent = '০';
+    if (filterMyDataBtn) filterMyDataBtn.style.display = 'none';
+    if (filterAllDataBtn) filterAllDataBtn.style.display = 'none';
+    if (noticeEl) {
+      noticeEl.innerHTML = `🔒 <strong>সিকিউরিটি প্রটেকশন:</strong> আপনার প্রাইভেট ডাটা দেখতে ইউজার লগইন করুন`;
+    }
+    return [];
   }
 
-  if (userFilterMode === 'my') {
-    if (filterMyDataBtn) filterMyDataBtn.classList.add('active');
-    if (filterAllDataBtn) filterAllDataBtn.classList.remove('active');
-    if (noticeEl) noticeEl.textContent = `ইউজার: ${currentUser.name} (${currentUser.role}) — আপনার এন্ট্রি করা তথ্য প্রদর্শিত হচ্ছে (${bnInt(myRecords.length)} টি)`;
+  // Calculate my records
+  const myRecords = records.filter(r => r.createdBy && (r.createdBy.username === currentUser.username || r.createdBy.id === currentUser.id));
+
+  if (myDataCountEl) myDataCountEl.textContent = bnInt(myRecords.length);
+  if (allDataCountEl) allDataCountEl.textContent = bnInt(records.length);
+
+  const isAdmin = currentUser.role === 'Admin';
+
+  if (!isAdmin) {
+    // STANDARD USER: STRICT OWN-DATA ONLY PRIVACY ACCESS
+    userFilterMode = 'my';
+    if (filterMyDataBtn) {
+      filterMyDataBtn.style.display = 'inline-flex';
+      filterMyDataBtn.classList.add('active');
+    }
+    if (filterAllDataBtn) {
+      filterAllDataBtn.style.display = 'none'; // Hide All Data button for non-admins
+    }
+    if (noticeEl) {
+      noticeEl.innerHTML = `🔒 <strong>প্রাইভেট এক্সেস:</strong> ইউজার: <strong>${currentUser.name}</strong> (${currentUser.role}) — শুধুমাত্র আপনার সংরক্ষিত (${bnInt(myRecords.length)} টি) তথ্য দেখানো হচ্ছে`;
+    }
     return myRecords;
   } else {
-    if (filterMyDataBtn) filterMyDataBtn.classList.remove('active');
-    if (filterAllDataBtn) filterAllDataBtn.classList.add('active');
-    if (noticeEl) noticeEl.textContent = `সকল নিবন্ধিত ইউজারের সংরক্ষিত মোট ${bnInt(records.length)} টি হোল্ডিং প্রদর্শিত হচ্ছে`;
-    return records;
+    // ADMIN USER: CAN VIEW SYSTEM ALL DATA
+    if (filterMyDataBtn) {
+      filterMyDataBtn.style.display = 'inline-flex';
+      if (userFilterMode === 'my') filterMyDataBtn.classList.add('active');
+      else filterMyDataBtn.classList.remove('active');
+    }
+    if (filterAllDataBtn) {
+      filterAllDataBtn.style.display = 'inline-flex';
+      if (userFilterMode === 'all') filterAllDataBtn.classList.add('active');
+      else filterAllDataBtn.classList.remove('active');
+    }
+
+    if (userFilterMode === 'my') {
+      if (noticeEl) noticeEl.innerHTML = `👑 <strong>এডমিন কন্ট্রোল:</strong> আপনার নিজস্ব ডাটা (${bnInt(myRecords.length)} টি) দেখানো হচ্ছে`;
+      return myRecords;
+    } else {
+      if (noticeEl) noticeEl.innerHTML = `🌐 <strong>এডমিন কন্ট্রোল:</strong> সিস্টেমে সমস্ত নিবন্ধিত ইউজারের মোট (${bnInt(records.length)} টি) ডাটা দেখানো হচ্ছে`;
+      return records;
+    }
   }
 }
 
@@ -1274,6 +1337,10 @@ document.getElementById('filterMyDataBtn').addEventListener('click', () => {
 });
 
 document.getElementById('filterAllDataBtn').addEventListener('click', () => {
+  if (currentUser && currentUser.role !== 'Admin') {
+    toast('🔒 অন্য ইউজারের ডাটা দেখার অনুমতি শুধুমাত্র এডমিন ইউজারের রয়েছে', 'warning');
+    return;
+  }
   userFilterMode = 'all';
   refreshListDisplay();
 });
@@ -1400,7 +1467,7 @@ function switchAuthTab(tab) {
   }
 }
 
-function loginUser(username, password, role) {
+async function loginUser(username, password, role) {
   if (!username || !username.trim()) {
     toast('ইউজার আইডি ইনপুট দিন', 'error');
     return;
@@ -1410,18 +1477,27 @@ function loginUser(username, password, role) {
   let existingUser = registeredUsersDB.find(u => u.username.toLowerCase() === uClean);
   
   if (existingUser) {
+    if (password && existingUser.passwordHash) {
+      const pHash = await hashPassword(password);
+      if (pHash !== existingUser.passwordHash) {
+        toast('ভুল পাসওয়ার্ড ইনপুট দেওয়া হয়েছে', 'error');
+        return;
+      }
+    }
     currentUser = { ...existingUser };
   } else {
     let displayName = username.trim();
     if (displayName.includes('@')) displayName = displayName.split('@')[0];
     displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
+    const pHash = await hashPassword(password);
     currentUser = {
       id: 'usr_' + Date.now(),
       username: username.trim(),
       name: displayName,
       role: role || 'DMF',
       office: 'উপজেলা ভূমি অফিস',
+      passwordHash: pHash,
       createdAt: new Date().toISOString()
     };
     registeredUsersDB.push(currentUser);
@@ -1433,10 +1509,10 @@ function loginUser(username, password, role) {
   renderUserProfileWidget();
   closeAuthModal();
   refreshListDisplay();
-  toast(`স্বাগতম ${currentUser.name}! সেশন লগইন সফল হয়েছে 🎉`, 'success');
+  toast(`স্বাগতম ${currentUser.name}! প্রাইভেট সেশন সিকিউরভাবে লগইন হয়েছে 🔒`, 'success');
 }
 
-function registerUser(fullName, username, password, role, office) {
+async function registerUser(fullName, username, password, role, office) {
   if (!fullName.trim() || !username.trim() || !password.trim()) {
     toast('সকল প্রয়োজনীয় তথ্য পূরণ করুন', 'error');
     return;
@@ -1449,12 +1525,14 @@ function registerUser(fullName, username, password, role, office) {
     return;
   }
 
+  const pHash = await hashPassword(password);
   const newUser = {
     id: 'usr_' + Date.now(),
     username: username.trim(),
     name: fullName.trim(),
     role: role || 'DMF',
     office: office.trim() || 'উপজেলা ভূমি অফিস',
+    passwordHash: pHash,
     createdAt: new Date().toISOString()
   };
 
@@ -1467,7 +1545,7 @@ function registerUser(fullName, username, password, role, office) {
   renderUserProfileWidget();
   closeAuthModal();
   refreshListDisplay();
-  toast(`অভিনন্দন ${newUser.name}! আপনার নতুন একাউন্ট সফলভাবে নিবন্ধিত হয়েছে 🎉`, 'success');
+  toast(`অভিনন্দন ${newUser.name}! আপনার প্রাইভেট একাউন্ট নিবন্ধিত হয়েছে 🔒`, 'success');
 }
 
 function logoutUser() {
