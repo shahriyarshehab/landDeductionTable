@@ -1395,8 +1395,19 @@ dagRows=[newDagRow()];
 renderDagTable();
 loadAll();
 
+function renderAdminPanelButton() {
+  const btnAdmin = document.getElementById('btnOpenAdminPanelModal');
+  if (!btnAdmin) return;
+  if (currentUser && currentUser.role === 'Admin') {
+    btnAdmin.style.display = 'inline-flex';
+  } else {
+    btnAdmin.style.display = 'none';
+  }
+}
+
 function renderUserProfileWidget() {
   const widget = document.getElementById('userProfileWidget');
+  renderAdminPanelButton();
   if (!widget) return;
 
   if (currentUser) {
@@ -1809,7 +1820,166 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Admin Panel Event Listeners
+  const btnOpenAdminPanelModal = document.getElementById('btnOpenAdminPanelModal');
+  if (btnOpenAdminPanelModal) btnOpenAdminPanelModal.addEventListener('click', openAdminPanelModal);
+
+  const closeAdminPanelBtn = document.getElementById('closeAdminPanelBtn');
+  if (closeAdminPanelBtn) closeAdminPanelBtn.addEventListener('click', closeAdminPanelModal);
+
+  const tabAdminUsersBtn = document.getElementById('tabAdminUsersBtn');
+  if (tabAdminUsersBtn) tabAdminUsersBtn.addEventListener('click', () => switchAdminTab('users'));
+
+  const tabAdminHoldingsBtn = document.getElementById('tabAdminHoldingsBtn');
+  if (tabAdminHoldingsBtn) tabAdminHoldingsBtn.addEventListener('click', () => switchAdminTab('holdings'));
 });
+
+/* ── ENTERPRISE ADMIN CONTROL PANEL ENGINE ── */
+function openAdminPanelModal() {
+  if (!currentUser || currentUser.role !== 'Admin') {
+    toast('🔒 এই ফিচার ব্যবহারের অনুমতি শুধুমাত্র এডমিন ইউজারের রয়েছে', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('adminPanelModal');
+  if (modal) modal.classList.add('open');
+
+  switchAdminTab('users');
+  renderAdminUsersTable();
+  renderAdminHoldingsTable();
+}
+
+function closeAdminPanelModal() {
+  const modal = document.getElementById('adminPanelModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function switchAdminTab(tab) {
+  const tabUsersBtn = document.getElementById('tabAdminUsersBtn');
+  const tabHoldingsBtn = document.getElementById('tabAdminHoldingsBtn');
+  const usersPanel = document.getElementById('adminUsersPanel');
+  const holdingsPanel = document.getElementById('adminHoldingsPanel');
+
+  if (tab === 'users') {
+    if (tabUsersBtn) tabUsersBtn.classList.add('active');
+    if (tabHoldingsBtn) tabHoldingsBtn.classList.remove('active');
+    if (usersPanel) usersPanel.style.display = 'block';
+    if (holdingsPanel) holdingsPanel.style.display = 'none';
+  } else {
+    if (tabUsersBtn) tabUsersBtn.classList.remove('active');
+    if (tabHoldingsBtn) tabHoldingsBtn.classList.add('active');
+    if (usersPanel) usersPanel.style.display = 'none';
+    if (holdingsPanel) holdingsPanel.style.display = 'block';
+  }
+}
+
+function renderAdminUsersTable() {
+  const tbody = document.getElementById('adminUserListBody');
+  const countEl = document.getElementById('adminUserCount');
+  if (countEl) countEl.textContent = bnInt(registeredUsersDB.length);
+  if (!tbody) return;
+
+  if (registeredUsersDB.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:16px;">কোনো নিবন্ধিত ইউজার নেই</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = registeredUsersDB.map(u => {
+    const userHoldings = allRecords.filter(r => r.createdBy && (r.createdBy.username === u.username || r.createdBy.id === u.id));
+    return `
+      <tr>
+        <td><strong>${u.name}</strong></td>
+        <td>${u.username}</td>
+        <td>
+          <select class="role-select-sm" onchange="changeUserRole('${u.id}', this.value)">
+            <option value="Operator" ${u.role === 'Operator' ? 'selected' : ''}>Operator</option>
+            <option value="DMF" ${u.role === 'DMF' ? 'selected' : ''}>DMF</option>
+            <option value="Land Officer" ${u.role === 'Land Officer' ? 'selected' : ''}>Land Officer</option>
+            <option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+        <td>${u.office || 'উপজেলা ভূমি অফিস'}</td>
+        <td><strong>${bnInt(userHoldings.length)}</strong> টি</td>
+        <td>
+          <button class="btn danger btn-sm" style="padding:2px 8px; font-size:10.5px;" onclick="deleteUserByAdmin('${u.id}')">
+            রিমুভ
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderAdminHoldingsTable() {
+  const tbody = document.getElementById('adminHoldingListBody');
+  const countEl = document.getElementById('adminTotalHoldingCount');
+  if (countEl) countEl.textContent = bnInt(allRecords.length);
+  if (!tbody) return;
+
+  if (allRecords.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:16px;">কোনো হোল্ডিং ডাটা নেই</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = allRecords.map(rec => {
+    const ownerName = rec.createdBy ? `${rec.createdBy.name} (${rec.createdBy.role})` : 'অজ্ঞাত / লিগ্যাসি';
+    return `
+      <tr>
+        <td><strong>${toBn(rec.holdingNo)}</strong></td>
+        <td>${toBn(rec.khatian || '—')}</td>
+        <td>${ownerName}</td>
+        <td>${bnInt(rec.dagRows ? rec.dagRows.length : 0)} টি</td>
+        <td>
+          <button class="btn danger btn-sm" style="padding:2px 8px; font-size:10.5px;" onclick="deleteHoldingByAdmin('${rec.id}')">
+            ডিলিট
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function changeUserRole(userId, newRole) {
+  const u = registeredUsersDB.find(usr => usr.id === userId);
+  if (!u) return;
+  u.role = newRole;
+  localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  if (currentUser && currentUser.id === userId) {
+    currentUser.role = newRole;
+    localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+  }
+  logAuditActivity('ইউজার রোল পরিবর্তন', `${u.name}-এর রোল পরিবর্তন করে ${newRole} করা হয়েছে`);
+  toast(`${u.name}-এর রোল আপডেট করা হয়েছে ✓`, 'success');
+  renderAdminUsersTable();
+  renderUserProfileWidget();
+}
+
+function deleteUserByAdmin(userId) {
+  const uIdx = registeredUsersDB.findIndex(usr => usr.id === userId);
+  if (uIdx === -1) return;
+  const targetUser = registeredUsersDB[uIdx];
+
+  if (!confirm(`আপনি কি নিশ্চিত যে ইউজার '${targetUser.name}' মুছে ফেলতে চান?`)) return;
+
+  registeredUsersDB.splice(uIdx, 1);
+  localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  logAuditActivity('ইউজার অ্যাকাউন্ট ডিলিট', `এডমিন কর্তৃক ইউজার ${targetUser.name} মুছে ফেলা হয়েছে`);
+  toast(`ইউজার ${targetUser.name} মুছে ফেলা হয়েছে`, 'info');
+  renderAdminUsersTable();
+}
+
+async function deleteHoldingByAdmin(holdingId) {
+  if (!confirm('আপনি কি নিশ্চিত যে এডমিন হিসেব এই হোল্ডিংটি মুছে ফেলতে চান?')) return;
+  try {
+    await storage.delete('holding:' + holdingId);
+    allRecords = allRecords.filter(r => r.id !== holdingId);
+    logAuditActivity('এডমিন হোল্ডিং ডিলিট', `হোল্ডিং ID: ${holdingId} মুছে ফেলা হয়েছে`);
+    toast('হোল্ডিং তথ্য মুছে ফেলা হয়েছে', 'info');
+    renderAdminHoldingsTable();
+    refreshListDisplay();
+  } catch (e) {}
+}
 
 /* ── AUDIT LOGGING ENGINE ── */
 let auditLogsDB = [];

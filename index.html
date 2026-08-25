@@ -168,6 +168,9 @@
 
     <!-- EXTRA ENTERPRISE TOOLS BAR -->
     <div class="extra-tools-bar">
+      <button class="btn primary btn-sm" id="btnOpenAdminPanelModal" style="display:none; background:var(--primary); font-weight:bold;" title="সিস্টেম এডমিন ও ইউজার কন্ট্রোল প্যানেল খুলুন">
+        👑 এডমিন প্যানেল
+      </button>
       <button class="btn ghost btn-sm" id="btnOpenAnalyticsModal" title="ডাটা অ্যানালিটিক্স ও ভূমি সামারি প্রতিবেদন দেখুন">
         📊 অ্যানালিটিক্স
       </button>
@@ -648,6 +651,67 @@
     <div class="modal-body">
       <div id="auditLogList" class="audit-log-list">
         <!-- Renders log items dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ENTERPRISE ADMIN CONTROL PANEL MODAL -->
+<div class="modal-overlay" id="adminPanelModal">
+  <div class="modal-box admin-modal-box">
+    <div class="modal-head">
+      <div class="auth-head-title">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span>সিস্টেম এডমিন ও ইউজার ম্যানেজমেন্ট কন্ট্রোল প্যানেল</span>
+      </div>
+      <button class="modal-close" id="closeAdminPanelBtn" aria-label="বন্ধ করুন">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- ADMIN TABS -->
+      <div class="auth-tabs" style="margin-bottom:16px;">
+        <button class="auth-tab-btn active" id="tabAdminUsersBtn">👑 নিবন্ধিত ইউজারবৃন্দ (<span id="adminUserCount">০</span>)</button>
+        <button class="auth-tab-btn" id="tabAdminHoldingsBtn">🌐 সমস্ত সিস্টেম হোল্ডিং (<span id="adminTotalHoldingCount">০</span>)</button>
+      </div>
+
+      <!-- ADMIN USERS PANEL -->
+      <div id="adminUsersPanel">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ইউজার নাম</th>
+                <th>ইউজার আইডি/ইমেইল</th>
+                <th>পদবী/রোল</th>
+                <th>কার্যালয়</th>
+                <th>হোল্ডিং সংখ্যা</th>
+                <th>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="adminUserListBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN HOLDINGS OVERVIEW PANEL -->
+      <div id="adminHoldingsPanel" style="display:none;">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>হোল্ডিং নং</th>
+                <th>খতিয়ান নং</th>
+                <th>মালিক/এন্ট্রি কারী</th>
+                <th>দাগ সংখ্যা</th>
+                <th>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="adminHoldingListBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
