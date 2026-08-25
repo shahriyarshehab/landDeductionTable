@@ -1100,6 +1100,8 @@ calcClearBtn.addEventListener('click', () => {
 
 /* ── HOLDINGS LIST RENDER (WITH NO LOGO ON SINGLE EXCEL BUTTON) ── */
 function renderHoldingsList(records){
+  const holdingsList = document.getElementById('holdingsList');
+  if (!holdingsList) return;
   if(records.length===0){
     if (!currentUser) {
       holdingsList.innerHTML=`
@@ -1414,10 +1416,14 @@ async function loadAll(){
     }
     allRecords=records;
     refreshListDisplay();
-    document.getElementById('searchBox').value='';
+    const sb = document.getElementById('searchBox');
+    if (sb) sb.value='';
+    return allRecords;
   }catch(err){
     console.error(err);
-    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
+    const hl = document.getElementById('holdingsList');
+    if (hl) hl.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
+    return [];
   }
 }
 
