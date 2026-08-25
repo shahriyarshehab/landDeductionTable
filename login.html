@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ইউজার লগইন পোর্টাল — জমি কর্তন টেবিল (LMAP)</title>
+
+  <!-- GOOGLE FONTS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- MAIN STYLESHEET -->
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: var(--bg);
+    }
+    .login-container {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .login-card {
+      background: var(--surface-card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(12px);
+    }
+    .login-header-logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-top-partner {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .login-app-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 0;
+    }
+    .login-app-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 4px;
+    }
+    .login-footer-copy {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- FLOATING TOP-RIGHT THEME TOGGLE -->
+<div class="floating-top-theme">
+  <button class="theme-btn-corner" id="themeToggle" title="ডার্ক / লাইট মোড টগল করুন" aria-label="থিম পরিবর্তন">
+    <svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg class="moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+
+<div class="login-container">
+  <div class="login-header-logo">
+    <div class="login-top-partner">Ministry of Land • UNDP Bangladesh</div>
+    <h1 class="login-app-title">জমি কর্তন টেবিল (LMAP)</h1>
+    <div class="login-app-sub">Land Data Digitalization for Inclusive Growth (LDD4IG)</div>
+  </div>
+
+  <div class="login-card">
+    <!-- AUTH TAB SWITCHER -->
+    <div class="auth-tabs" style="margin-bottom: 20px;">
+      <button class="auth-tab-btn active" id="tabLoginBtn">ইউজার লগইন</button>
+      <button class="auth-tab-btn" id="tabRegisterBtn">নতুন একাউন্ট নিবন্ধন</button>
+    </div>
+
+    <!-- LOGIN FORM PANEL -->
+    <div id="loginFormPanel">
+      <div class="auth-banner-notice">
+        <strong>নিরাপদ প্রবেশাধিকার:</strong> সিস্টেমে আপনার এন্ট্রি করা ভূমি কর্তন ও খতিয়ান তথ্য অ্যাক্সেস করতে লগইন করুন।
+      </div>
+
+      <form id="standaloneLoginForm" method="dialog" action="#">
+        <div class="field-wrap" style="margin-bottom:14px;">
+          <label>অফিশিয়াল ইমেইল / ইউজার আইডি (Email / Username) <span style="color:var(--danger)">*</span></label>
+          <input type="email" name="username" id="loginUsername" placeholder="যেমন: shehab@land.gov.bd" required autocomplete="username">
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:14px;">
+          <label>পাসওয়ার্ড / এক্সেস পিন <span style="color:var(--danger)">*</span></label>
+          <input type="password" name="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:18px;">
+          <label>পদবী / রোল সিলেকশন</label>
+          <select id="loginRole">
+            <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+            <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+            <option value="Land Officer">সহকারী কমিশনার (ভূমি) / অফিসার</option>
+            <option value="Admin">সিস্টেম এডমিন (Admin / Auditor)</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn primary" id="btnLoginSubmit" style="width:100%; justify-content:center; padding:11px; font-size:14px; font-weight:700;">
+            প্রফেশনাল ইউজার হিসেবে প্রবেশ করুন
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- REGISTER FORM PANEL -->
+    <div id="registerFormPanel" style="display:none;">
+      <div class="auth-banner-notice">
+        <strong>নতুন ইউজার রেজিস্ট্রেশন:</strong> সিস্টেমে নিজের আলাদা প্রোফাইল তৈরি করতে তথ্যগুলো পূরণ করুন।
+      </div>
+
+      <form id="standaloneRegisterForm" method="dialog" action="#">
+        <div class="field-wrap" style="margin-bottom:12px;">
+          <label>পূর্ণ নাম (Full Name) <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="fullname" id="regFullName" placeholder="যেমন: মো: শাহরিয়ার শিহাব" required autocomplete="name">
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:12px;">
+          <label>অফিশিয়াল ইমেইল / ইউজার আইডি <span style="color:var(--danger)">*</span></label>
+          <input type="email" name="username" id="regUsername" placeholder="যেমন: shehab@land.gov.bd" required autocomplete="username">
+        </div>
+
+        <div class="field-grid" style="margin-bottom:12px;">
+          <div class="field-wrap">
+            <label>পাসওয়ার্ড <span style="color:var(--danger)">*</span></label>
+            <input type="password" name="password" id="regPassword" placeholder="••••••••" required autocomplete="new-password">
+          </div>
+          <div class="field-wrap">
+            <label>পদবী / রোল <span style="color:var(--danger)">*</span></label>
+            <select id="regRole">
+              <option value="Operator">ডাটা এন্ট্রি অপারেটর (Operator)</option>
+              <option value="DMF" selected>ডাটা ম্যানেজমেন্ট ফ্যাসিলিটর (DMF)</option>
+              <option value="Land Officer">সহকারী কমিশনার (ভূমি)</option>
+              <option value="Admin">সিস্টেম এডমিন (Admin)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:16px;">
+          <label>কার্যালয় / স্থান <span style="color:var(--ink-soft); font-weight:normal;">(ঐচ্ছিক)</span></label>
+          <input type="text" name="office" id="regOffice" placeholder="যেমন: উপজেলা ভূমি অফিস, ফেনী সদর">
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn primary" id="btnRegisterSubmit" style="width:100%; justify-content:center; padding:11px; font-size:14px; font-weight:700;">
+            একাউন্ট সফলভাবে নিবন্ধন করুন
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="login-footer-copy">
+    © 2026 Land Management Automation Project (LMAP) · ভূমি মন্ত্রণালয় ও UNDP Bangladesh
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Theme Manager
+  const savedTheme = localStorage.getItem('lmap_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', cur);
+    localStorage.setItem('lmap_theme', cur);
+  });
+
+  // Check if already logged in -> redirect to index.html
+  try {
+    const activeUser = localStorage.getItem('lmap_active_user');
+    if (activeUser && JSON.parse(activeUser)) {
+      window.location.href = 'index.html';
+    }
+  } catch (e) {}
+
+  // Toast Notifier
+  function toast(msg, type = 'info') {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = `toast show ${type}`;
+    setTimeout(() => { el.className = 'toast'; }, 3200);
+  }
+
+  // SHA-256 Password Hash Helper
+  async function hashPassword(plainText) {
+    if (!plainText) return '';
+    try {
+      if (window.crypto && window.crypto.subtle) {
+        const msgUint8 = new TextEncoder().encode(plainText);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch (e) {}
+    let hash = 0;
+    for (let i = 0; i < plainText.length; i++) {
+      hash = (hash << 5) - hash + plainText.charCodeAt(i);
+      hash |= 0;
+    }
+    return 'h_' + Math.abs(hash).toString(16);
+  }
+
+  // Tab Switcher
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  const tabRegisterBtn = document.getElementById('tabRegisterBtn');
+  const loginFormPanel = document.getElementById('loginFormPanel');
+  const registerFormPanel = document.getElementById('registerFormPanel');
+
+  tabLoginBtn.addEventListener('click', () => {
+    tabLoginBtn.classList.add('active');
+    tabRegisterBtn.classList.remove('active');
+    loginFormPanel.style.display = 'block';
+    registerFormPanel.style.display = 'none';
+  });
+
+  tabRegisterBtn.addEventListener('click', () => {
+    tabRegisterBtn.classList.add('active');
+    tabLoginBtn.classList.remove('active');
+    loginFormPanel.style.display = 'none';
+    registerFormPanel.style.display = 'block';
+  });
+
+  // User DB
+  let registeredUsersDB = [];
+  try {
+    const dbStr = localStorage.getItem('lmap_users_db');
+    if (dbStr) registeredUsersDB = JSON.parse(dbStr);
+  } catch (e) { registeredUsersDB = []; }
+
+  // Handle Login
+  document.getElementById('standaloneLoginForm').addEventListener('submit', async (e) => {
+    if (e) e.preventDefault();
+    const uVal = document.getElementById('loginUsername').value.trim();
+    const pVal = document.getElementById('loginPassword').value;
+    const rVal = document.getElementById('loginRole').value;
+
+    if (!uVal) { toast('ইউজার আইডি ইনপুট দিন', 'error'); return; }
+
+    const uClean = uVal.toLowerCase();
+    let existingUser = registeredUsersDB.find(u => u.username.toLowerCase() === uClean);
+
+    if (existingUser) {
+      if (pVal && existingUser.passwordHash) {
+        const pHash = await hashPassword(pVal);
+        if (pHash !== existingUser.passwordHash) {
+          toast('ভুল পাসওয়ার্ড ইনপুট দেওয়া হয়েছে', 'error');
+          return;
+        }
+      }
+      currentUser = { ...existingUser };
+    } else {
+      let displayName = uVal;
+      if (displayName.includes('@')) displayName = displayName.split('@')[0];
+      displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
+      const pHash = await hashPassword(pVal);
+      currentUser = {
+        id: 'usr_' + Date.now(),
+        username: uVal,
+        name: displayName,
+        role: rVal || 'DMF',
+        office: 'উপজেলা ভূমি অফিস',
+        passwordHash: pHash,
+        createdAt: new Date().toISOString()
+      };
+      registeredUsersDB.push(currentUser);
+      localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+    }
+
+    localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+    toast(`স্বাগতম ${currentUser.name}! সিস্টেমে প্রবেশ করা হচ্ছে...`, 'success');
+    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+  });
+
+  // Handle Registration
+  document.getElementById('standaloneRegisterForm').addEventListener('submit', async (e) => {
+    if (e) e.preventDefault();
+    const fVal = document.getElementById('regFullName').value.trim();
+    const uVal = document.getElementById('regUsername').value.trim();
+    const pVal = document.getElementById('regPassword').value;
+    const rVal = document.getElementById('regRole').value;
+    const oVal = document.getElementById('regOffice').value.trim();
+
+    if (!fVal || !uVal || !pVal) { toast('সকল প্রয়োজনীয় তথ্য পূরণ করুন', 'error'); return; }
+
+    const uClean = uVal.toLowerCase();
+    const exists = registeredUsersDB.some(u => u.username.toLowerCase() === uClean);
+    if (exists) { toast('এই ইউজার আইডিটি ইতিমধ্যেই নিবন্ধিত রয়েছে', 'error'); return; }
+
+    const pHash = await hashPassword(pVal);
+    const newUser = {
+      id: 'usr_' + Date.now(),
+      username: uVal,
+      name: fVal,
+      role: rVal || 'DMF',
+      office: oVal || 'উপজেলা ভূমি অফিস',
+      passwordHash: pHash,
+      createdAt: new Date().toISOString()
+    };
+
+    registeredUsersDB.push(newUser);
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+
+    localStorage.setItem('lmap_active_user', JSON.stringify(newUser));
+    toast(`অভিনন্দন ${newUser.name}! সিস্টেমে প্রবেশ করা হচ্ছে...`, 'success');
+    setTimeout(() => { window.location.href = 'index.html'; }, 900);
+  });
+</script>
+</body>
+</html>

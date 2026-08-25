@@ -1451,6 +1451,9 @@ function openAuthModal() {
   const authModal = document.getElementById('authModal');
   if (authModal) authModal.classList.add('open');
   switchAuthTab('login');
+  if (typeof window !== 'undefined' && !window.location.pathname.endsWith('login.html')) {
+    window.location.href = 'login.html';
+  }
 }
 
 function closeAuthModal() {
@@ -1589,6 +1592,9 @@ function logoutUser() {
   } catch (e) {}
 
   toast('সফলভাবে লগআউট করা হয়েছে 🚪', 'info');
+  setTimeout(() => {
+    window.location.href = 'login.html';
+  }, 600);
 }
 
 /* ── USER PROFILE VIEW & EDIT CONTROLLER ── */
