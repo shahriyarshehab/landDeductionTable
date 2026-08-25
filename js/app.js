@@ -1270,129 +1270,6 @@ async function hashPassword(plainText) {
   return 'h_' + Math.abs(hash).toString(16);
 }
 
-/* ── STRICT APP PRIVACY ACCESS CONTROLLER ── */
-function applyUserFilter(records) {
-  const myDataCountEl = document.getElementById('myDataCount');
-  const allDataCountEl = document.getElementById('allDataCount');
-  const noticeEl = document.getElementById('userFilterNotice');
-  const filterMyDataBtn = document.getElementById('filterMyDataBtn');
-  const filterAllDataBtn = document.getElementById('filterAllDataBtn');
-
-  // CASE 1: UNAUTHENTICATED VISITOR -> ZERO DATA VISIBILITY (STRICT PRIVACY LOCK)
-  if (!currentUser) {
-    if (myDataCountEl) myDataCountEl.textContent = '০';
-    if (allDataCountEl) allDataCountEl.textContent = '০';
-    if (filterMyDataBtn) filterMyDataBtn.style.display = 'none';
-    if (filterAllDataBtn) filterAllDataBtn.style.display = 'none';
-    if (noticeEl) {
-      noticeEl.innerHTML = `🔒 <strong>সিকিউরিটি প্রটেকশন:</strong> আপনার প্রাইভেট ডাটা দেখতে ইউজার লগইন করুন`;
-    }
-    return [];
-  }
-
-  // Calculate my records
-  const myRecords = records.filter(r => r.createdBy && (r.createdBy.username === currentUser.username || r.createdBy.id === currentUser.id));
-
-  if (myDataCountEl) myDataCountEl.textContent = bnInt(myRecords.length);
-  if (allDataCountEl) allDataCountEl.textContent = bnInt(records.length);
-
-  const isAdmin = currentUser.role === 'Admin';
-
-  if (!isAdmin) {
-    // STANDARD USER: STRICT OWN-DATA ONLY PRIVACY ACCESS
-    userFilterMode = 'my';
-    if (filterMyDataBtn) {
-      filterMyDataBtn.style.display = 'inline-flex';
-      filterMyDataBtn.classList.add('active');
-    }
-    if (filterAllDataBtn) {
-      filterAllDataBtn.style.display = 'none'; // Hide All Data button for non-admins
-    }
-    if (noticeEl) {
-      noticeEl.innerHTML = `🔒 <strong>প্রাইভেট এক্সেস:</strong> ইউজার: <strong>${currentUser.name}</strong> (${currentUser.role}) — শুধুমাত্র আপনার সংরক্ষিত (${bnInt(myRecords.length)} টি) তথ্য দেখানো হচ্ছে`;
-    }
-    return myRecords;
-  } else {
-    // ADMIN USER: CAN VIEW SYSTEM ALL DATA
-    if (filterMyDataBtn) {
-      filterMyDataBtn.style.display = 'inline-flex';
-      if (userFilterMode === 'my') filterMyDataBtn.classList.add('active');
-      else filterMyDataBtn.classList.remove('active');
-    }
-    if (filterAllDataBtn) {
-      filterAllDataBtn.style.display = 'inline-flex';
-      if (userFilterMode === 'all') filterAllDataBtn.classList.add('active');
-      else filterAllDataBtn.classList.remove('active');
-    }
-
-    if (userFilterMode === 'my') {
-      if (noticeEl) noticeEl.innerHTML = `👑 <strong>এডমিন কন্ট্রোল:</strong> আপনার নিজস্ব ডাটা (${bnInt(myRecords.length)} টি) দেখানো হচ্ছে`;
-      return myRecords;
-    } else {
-      if (noticeEl) noticeEl.innerHTML = `🌐 <strong>এডমিন কন্ট্রোল:</strong> সিস্টেমে সমস্ত নিবন্ধিত ইউজারের মোট (${bnInt(records.length)} টি) ডাটা দেখানো হচ্ছে`;
-      return records;
-    }
-  }
-}
-
-function refreshListDisplay() {
-  const q = toEn(document.getElementById('searchBox').value.trim()).toLowerCase();
-  const visibleBase = applyUserFilter(allRecords);
-  if (!q) {
-    renderHoldingsList(visibleBase);
-    return;
-  }
-  const filtered = visibleBase.filter(rec => {
-    const hay = toEn([rec.holdingNo, rec.khatian, ...rec.dagRows.map(r => r.dagNo)].join(' ')).toLowerCase();
-    return hay.includes(q);
-  });
-  renderHoldingsList(filtered);
-}
-
-document.getElementById('searchBox').addEventListener('input', () => {
-  refreshListDisplay();
-});
-
-document.getElementById('filterMyDataBtn').addEventListener('click', () => {
-  if (!currentUser) {
-    toast('আপনার ডাটা দেখতে প্রথমে লগইন করুন', 'warning');
-    openAuthModal();
-    return;
-  }
-  userFilterMode = 'my';
-  refreshListDisplay();
-});
-
-document.getElementById('filterAllDataBtn').addEventListener('click', () => {
-  if (currentUser && currentUser.role !== 'Admin') {
-    toast('🔒 অন্য ইউজারের ডাটা দেখার অনুমতি শুধুমাত্র এডমিন ইউজারের রয়েছে', 'warning');
-    return;
-  }
-  userFilterMode = 'all';
-  refreshListDisplay();
-});
-
-async function loadAll(){
-  try{
-    const listRes=await storage.list('holding:',false);
-    const keys=(listRes&&listRes.keys)||[];
-    const records=[];
-    for(const k of keys){
-      try{ const r=await storage.get(k,false); if(r&&r.value) records.push(JSON.parse(r.value)); }catch(e){}
-    }
-    allRecords=records;
-    refreshListDisplay();
-    document.getElementById('searchBox').value='';
-  }catch(err){
-    console.error(err);
-    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
-  }
-}
-
-dagRows=[newDagRow()];
-renderDagTable();
-loadAll();
-
 /* ── ADVANCED USER AUTHENTICATION, REGISTRATION & PROFILE ENGINE ── */
 let currentUser = null;
 let registeredUsersDB = [];
@@ -1419,7 +1296,104 @@ function initUserAuth() {
   }
 
   renderUserProfileWidget();
+  refreshListDisplay();
 }
+
+/* ── STRICT APP PRIVACY ACCESS CONTROLLER ── */
+function applyUserFilter(records) {
+  const myDataCountEl = document.getElementById('myDataCount');
+  const allDataCountEl = document.getElementById('allDataCount');
+  const noticeEl = document.getElementById('userFilterNotice');
+  const filterMyDataBtn = document.getElementById('filterMyDataBtn');
+  const filterAllDataBtn = document.getElementById('filterAllDataBtn');
+
+  // CASE 1: UNAUTHENTICATED VISITOR -> ZERO DATA VISIBILITY (STRICT PRIVACY LOCK)
+  if (!currentUser) {
+    if (myDataCountEl) myDataCountEl.textContent = '০';
+    if (allDataCountEl) allDataCountEl.textContent = '০';
+    if (filterMyDataBtn) filterMyDataBtn.style.display = 'none';
+    if (filterAllDataBtn) filterAllDataBtn.style.display = 'none';
+    if (noticeEl) {
+      noticeEl.innerHTML = `🔒 <strong>সিকিউরিটি প্রটেকশন:</strong> আপনার প্রাইভেট ডাটা দেখতে ইউজার লগইন করুন`;
+    }
+    return [];
+  }
+
+  const curUserClean = (currentUser.username || '').trim().toLowerCase();
+  const curUserId = currentUser.id || '';
+
+  // Calculate my records with robust case-insensitive matching & legacy record inclusion
+  const myRecords = records.filter(r => {
+    if (!r.createdBy) return true; // Legacy holdings created without owner metadata
+    const recUserClean = (r.createdBy.username || '').trim().toLowerCase();
+    const recUserId = r.createdBy.id || '';
+    return (recUserClean && recUserClean === curUserClean) || (recUserId && recUserId === curUserId);
+  });
+
+  if (myDataCountEl) myDataCountEl.textContent = bnInt(myRecords.length);
+  if (allDataCountEl) allDataCountEl.textContent = bnInt(records.length);
+
+  const isAdmin = currentUser.role === 'Admin';
+
+  if (!isAdmin) {
+    // STANDARD USER: STRICT OWN-DATA ONLY PRIVACY ACCESS
+    userFilterMode = 'my';
+    if (filterMyDataBtn) {
+      filterMyDataBtn.style.display = 'inline-flex';
+      filterMyDataBtn.classList.add('active');
+    }
+    if (filterAllDataBtn) {
+      filterAllDataBtn.style.display = 'none'; // Hide All Data button for non-admins
+    }
+    if (noticeEl) {
+      noticeEl.innerHTML = `🔒 <strong>প্রাইভেট এক্সেস:</strong> ইউজার: <strong>${currentUser.name}</strong> (${currentUser.role}) — আপনার সংরক্ষিত (${bnInt(myRecords.length)} টি) ডাটা প্রদর্শিত হচ্ছে`;
+    }
+    return myRecords;
+  } else {
+    // ADMIN USER: CAN VIEW SYSTEM ALL DATA
+    if (filterMyDataBtn) {
+      filterMyDataBtn.style.display = 'inline-flex';
+      if (userFilterMode === 'my') filterMyDataBtn.classList.add('active');
+      else filterMyDataBtn.classList.remove('active');
+    }
+    if (filterAllDataBtn) {
+      filterAllDataBtn.style.display = 'inline-flex';
+      if (userFilterMode === 'all') filterAllDataBtn.classList.add('active');
+      else filterAllDataBtn.classList.remove('active');
+    }
+
+    if (userFilterMode === 'my') {
+      if (noticeEl) noticeEl.innerHTML = `👑 <strong>এডমিন কন্ট্রোল:</strong> আপনার নিজস্ব ডাটা (${bnInt(myRecords.length)} টি) প্রদর্শিত হচ্ছে`;
+      return myRecords;
+    } else {
+      if (noticeEl) noticeEl.innerHTML = `🌐 <strong>এডমিন কন্ট্রোল:</strong> সিস্টেমে সমস্ত নিবন্ধিত ইউজারের মোট (${bnInt(records.length)} টি) ডাটা দেখানো হচ্ছে`;
+      return records;
+    }
+  }
+}
+
+async function loadAll(){
+  try{
+    const listRes=await storage.list('holding:',false);
+    const keys=(listRes&&listRes.keys)||[];
+    const records=[];
+    for(const k of keys){
+      try{ const r=await storage.get(k,false); if(r&&r.value) records.push(JSON.parse(r.value)); }catch(e){}
+    }
+    allRecords=records;
+    refreshListDisplay();
+    document.getElementById('searchBox').value='';
+  }catch(err){
+    console.error(err);
+    holdingsList.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><strong>তথ্য লোড ব্যর্থ</strong></div>`;
+  }
+}
+
+// INITIALIZE USER SESSION FIRST BEFORE LOADING DATA
+initUserAuth();
+dagRows=[newDagRow()];
+renderDagTable();
+loadAll();
 
 function renderUserProfileWidget() {
   const widget = document.getElementById('userProfileWidget');
