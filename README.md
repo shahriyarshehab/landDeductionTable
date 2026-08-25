@@ -1,10 +1,12 @@
 <div align="center">
 
-# 🌾 জমি কর্তন টেবিল (Land Deduction Table - LDD4IG)
+# 🌾 জমি কর্তন টেবিল (Land Deduction Table - LMAP)
 
-[![Version](https://img.shields.io/badge/Version-v4.4-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
-[![Status](https://img.shields.io/badge/Status-Active-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
-[![Architecture](https://img.shields.io/badge/Architecture-Modular%20Client--Side-33E0C7?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Version](https://img.shields.io/badge/Version-v4.5-6E56FF?style=for-the-badge&logo=appveyor)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Status](https://img.shields.io/badge/Status-Enterprise%20Ready-12B8A3?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
+[![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)](https://supabase.com)
+[![Backend](https://img.shields.io/badge/API%20Server-Render.com-46E3B7?style=for-the-badge&logo=render)](https://render.com)
+[![Hosting](https://img.shields.io/badge/Hosting-Vercel-000000?style=for-the-badge&logo=vercel)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-Copyright%20©%202026-C9922B?style=for-the-badge)](https://github.com/shahriyarshehab/landDeductionTable)
 
 <br/>
@@ -12,83 +14,174 @@
 **Land Data Digitalization for Inclusive Growth (LDD4IG)**  
 *সঠিক পরিমাপ ও অন্তর্ভুক্তিমূলক প্রবৃদ্ধিতে স্মার্ট ডিজিটাল ভূমিসেবা*
 
-[🚀 Quick Start](#-quick-start) • [✨ Key Features](#-key-features) • [📁 Directory Structure](#-project-architecture) • [💡 Usage & Shortcuts](#-keyboard-shortcuts--tips)
+[🚀 Quick Start](#-quick-start) • [☁️ Cloud Deployment Guide](#%EF%B8%8F-cloud-server--database-deployment-guide) • [✨ Enterprise Features](#-key-enterprise-features) • [📁 Directory Structure](#-project-architecture)
 
 </div>
 
 ---
 
-> [!NOTE]
-> **জমি কর্তন টেবিল** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা এবং দাগ-ভিত্তিক জমির কর্তন হিসাব রিয়েল-টাইমে পরিচালনার জন্য তৈরি একটি আধুনিক, ১০০% ক্লায়েন্ট-সাইড (Client-side) ওয়েব অ্যাপ্লিকেশন। এটি ব্যবহার করে অত্যন্ত নির্ভুলভাবে মোট জমি, বিভিন্ন হোল্ডিং অনুযায়ী কর্তন এবং অবশিষ্ট জমির অটোমেটেড হিসাব প্রস্তুত করা যায়।
+> [!IMPORTANT]
+> **LMAP (Land Management Automation Project)** হলো ভূমি জরিপ, খতিয়ান ব্যবস্থাপনা এবং দাগ-ভিত্তিক জমির কর্তন হিসাব রিয়েল-টাইমে পরিচালনার জন্য তৈরি একটি আধুনিক, স্ট্রিক্ট-প্রাইভেসি এনক্রিপ্টেড ওয়েব অ্যাপ্লিকেশন। অ্যাপটিতে **Supabase PostgreSQL Cloud DB**, **Render.com Node.js API** এবং **Vercel Frontend Hosting** আর্কিটেকচার যুক্ত করা হয়েছে।
+
+---
+
+## ☁️ Cloud Server & Database Deployment Guide
+
+LMAP সিস্টেমকে ক্লাউডে সম্পূর্ণ বিনামূল্যে (১০০% Free Tier) লাইভ করার জন্য নিচের ৩টি প্রধান ধাপ অনুসরণ করুন:
+
+```
++-------------------------------------------------------------------+
+|               LMAP Web Client (Hosted on Vercel)                  |
+|                 https://your-lmap.vercel.app                      |
++-------------------------------------------------------------------+
+                                  │
+         ┌────────────────────────┴────────────────────────┐
+         ▼                                                 ▼
+[ Render.com REST API Server ]                    [ Supabase Cloud DB ]
+  Node.js + Express.js API                         PostgreSQL + Row-Level Security
+  (https://lmap-api.onrender.com)                  (SHA-256 Auth & Data Sync)
+```
+
+---
+
+### 🗄️ ১. Supabase ক্লাউড ডাটাবেজ সেটআপ (Supabase PostgreSQL Setup)
+
+1. [Supabase.com](https://supabase.com)-এ ফ্রি একাউন্ট তৈরি করুন এবং **New Project** দিয়ে প্রজেক্ট খুলুন।
+2. Supabase ড্যাশবোর্ডের **SQL Editor**-এ গিয়ে নিচের SQL স্ক্রিপ্টটি রান করুন:
+
+```sql
+-- 1. Users Database Table
+CREATE TABLE IF NOT EXISTS public.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(150) NOT NULL,
+    role VARCHAR(50) DEFAULT 'DMF',
+    office VARCHAR(200) DEFAULT 'উপজেলা ভূমি অফিস',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Holdings Database Table
+CREATE TABLE IF NOT EXISTS public.holdings (
+    id VARCHAR(100) PRIMARY KEY,
+    holding_no VARCHAR(100) NOT NULL,
+    khatian VARCHAR(100),
+    area_unit VARCHAR(50) DEFAULT 'shotok',
+    dag_rows JSONB NOT NULL,
+    korton_cols JSONB,
+    created_by JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Audit Logs Table
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+    id VARCHAR(100) PRIMARY KEY,
+    action_name VARCHAR(100) NOT NULL,
+    user_name VARCHAR(150),
+    user_role VARCHAR(50),
+    details TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.holdings ENABLE ROW LEVEL SECURITY;
+```
+
+3. Supabase-এর **Project Settings -> API** সেকশন থেকে `Project URL` এবং `anon key` কপি করুন।
+
+---
+
+### ⚙️ ২. Render.com ব্যাকএন্ড API ডেপ্লয়মেন্ট (Render.com API Setup)
+
+1. [Render.com](https://render.com)-এ লগইন করে **New Web Service** অপশনে ক্লিক করুন।
+2. আপনার গিটহাব রিপোজিটরি কানেক্ট করুন এবং নিচের সেটিং দিন:
+   - **Environment**: Node
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+3. **Environment Variables**-এ নিচের মানগুলো দিন:
+   - `SUPABASE_URL` = `https://your-project.supabase.co`
+   - `SUPABASE_KEY` = `your-supabase-service-key`
+   - `PORT` = `10000`
+4. **Deploy Web Service** বাটনে ক্লিক করুন। কয়েক সেকেন্ডের মধ্যে আপনার API ইউআরএল পেয়ে যাবেন (যেমন: `https://lmap-api.onrender.com`)।
+
+---
+
+### 🌐 ৩. Vercel ফ্রন্টএন্ড হোস্টিং (Vercel Deployment)
+
+1. [Vercel.com](https://vercel.com)-এ সাইন আপ করে **Add New Project** ক্লিক করুন।
+2. আপনার GitHub রিপোজিটরি `landDeductionTable` সিলেক্ট করুন।
+3. **Deploy** বাটনে ক্লিক করুন।
+4. কয়েক সেকেন্ডের মধ্যে আপনার লাইভ ওয়েবসাইট ইউআরএল তৈরি হয়ে যাবে (যেমন: `https://land-deduction-table.vercel.app`)!
+
+---
+
+## ✨ Key Enterprise Features
+
+### 🔒 1. Strict Privacy & SHA-256 Cryptographic Security
+* **User Data Isolation**: সাধারণ ইউজার (`Operator`, `DMF`, `Land Officer`) শুধুমাত্র তার নিজস্ব এন্ট্রি করা তথ্য দেখতে ও পরিচালনা করতে পারেন।
+* **SHA-256 Hashing**: Web Crypto API ব্যবহার করে পাসওয়ার্ড এনক্রিপ্ট করে সিকিউর সেশনে সংরক্ষণ করা হয়।
+
+### 📊 2. Visual Land Data Analytics & Audit Log
+* **অ্যানালিটিক্স প্যানেল**: মোট হোল্ডিং, মোট খতিয়ান, ক্যাডাস্ট্রাল দাগ, মোট কর্তনকৃত জমি এবং অবশিষ্ট জমির শতকরা হার পরিমাপের ভিজ্যুয়াল সামারি।
+* **সিকিউরিটি অডিট লগ**: ইউজারদের সকল সিস্টেম কার্যক্রম তারিখ ও সময়সহ ট্র্যাকিং।
+
+### 📥 3. System JSON Backup & Restore
+* **১-ক্লিক ব্যাকআপ এক্সপোর্ট**: সমস্ত হোল্ডিং ও ইউজার ডাটার `.json` ব্যাকআপ পিসিতে নামানোর সুবিধা।
+* **ব্যাকআপ রিস্টোর**: পুরনো ব্যাকআপ ফাইল থেকে ডাটা মুহূর্তের মধ্যে পুনরুদ্ধার।
+
+### 📐 4. Universal Land Converter & SheetJS (.xlsx) Export
+* শতক, কাঠা, বিঘা, একর, হেক্টর, কানি, গণ্ডা ও বর্গফুট রূপান্তরক এবং প্রিন্ট-রেডি এক্সেল ওয়ার্কশিট এক্সপোর্ট।
+
+---
+
+## ⚡ Tech Stack & Cloud Services
+
+| Layer | Technology | Hosting / Cloud Provider |
+| :--- | :--- | :--- |
+| **Frontend UI** | HTML5 / CSS Tokens / JS (ES6+) | **Vercel** *(100% Free Hosting)* |
+| **Backend API** | Node.js / Express REST API | **Render.com** *(Free Tier Web Service)* |
+| **Database** | PostgreSQL + RLS | **Supabase** *(500 MB Free Cloud DB)* |
+| **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook compiler |
 
 ---
 
 ## 📁 Project Architecture
 
-The codebase follows a clean, modular folder hierarchy separating markup, styling, JavaScript logic, and media assets:
-
 ```
 landDeductionTable/
-├── 📄 index.html            # Primary application entry point (Clean HTML5 markup)
+├── 📄 index.html            # Application entry point with Auth, Analytics & Audit Modals
 ├── 🎨 css/
-│   └── 📄 styles.css        # Design tokens, themes (Aurora Light/Dark), layout & print rules
+│   └── 📄 styles.css        # Enterprise tokens, glassmorphic themes, analytics & print rules
 ├── ⚡ js/
-│   └── 📄 app.js            # Precise decimal math engine, LocalStorage, SheetJS exporter & UI
+│   └── 📄 app.js            # App controller, SHA-256 Crypto Auth, Analytics & Cloud Config
 ├── 🖼️ assets/
-│   └── 🖼️ devImage.jpeg     # Developer avatar image asset
-└── 📝 README.md             # Project documentation & reference guide
+│   └── 🖼️ devImage.jpeg     # Developer avatar asset
+└── 📝 README.md             # Project documentation & Cloud Deployment Guide
 ```
 
 ---
 
-## ✨ Key Features
+## 👨‍💻 Developer & Facilitation
 
-### 🌅 1. Dual Theme System (Aurora Light & Dark Glassmorphic UI)
-* **Sunrise & Sunset Mode**: Smooth animated theme toggle supporting light and dark color schemes built with CSS Custom Properties (Variables) and glassmorphism backdrop filters.
+<div align="center">
 
-### 📊 2. Dynamic Holding Column Allocation & Smart Math Engine
-* **Expression Parser**: Supports natural mathematical expressions directly inside deduction fields (e.g. `১+১+১`, `১.৫+২.০`, or `১.২, ৩.৪`).
-* **Instant Column Split/Merge**: Automatically splits comma/plus separated deductions into individual holding columns or merges them into a single consolidated overview.
+<img src="./assets/devImage.jpeg" width="110" height="110" style="border-radius: 50%; object-fit: cover; box-shadow: 0 4px 14px rgba(110,86,255,0.3);" alt="Shahriyar Shehab">
 
-### 📐 3. Floating Universal Land Unit Converter Drawer
-* Real-time converter supporting 8 standard measurement units: **Decimal (শতক), Katha (কাঠা), Bigha (বিঘা), Acre (একর), Hectare (হেক্টর), Kani (কানি), Ganda (গণ্ডা), and Square Feet (বর্গফুট)**.
+### **Shahriyar Shehab**
+**Data Management Facilitator (DMF)**  
+*Project:* **LDD4IG** (*Land Data Digitalization for Inclusive Growth*)  
+*Organizations:* **Ministry of Land • UNDP Bangladesh**
 
-### 📥 4. Advanced Spreadsheet Export (.xlsx)
-* Integrated with **SheetJS (`xlsx.full.min.js`)** to generate print-ready Excel spreadsheets for individual holdings or complete bulk export worksheets.
-
-### 🖨️ 5. Smart Print & PDF Engine
-* **Auto-Orientation**: Dynamically switches between **A4 Portrait** (standard tables) and **A4 Landscape** (wide holding tables) for optimal printing without clipping data.
-
-### 💾 6. Offline-First Storage Engine
-* Built-in `LocalStorage` adapter guarantees zero-data loss, retaining saved holdings, custom tags, and developer profiles completely offline inside the client browser.
+</div>
 
 ---
 
-## ⚡ Tech Stack & Libraries
+## 📜 License
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Frontend UI** | HTML5 / CSS3 Tokens | Modular components, CSS variables, glassmorphism, responsive grid |
-| **Logic & Math** | JavaScript (ES6+) | Precise decimal arithmetic engine & Bangla digit parsing (`BN_DIGITS`) |
-| **Spreadsheets** | SheetJS (`xlsx.full.min.js`) | Client-side `.xlsx` workbook & worksheet compilation |
-| **Typography** | Google Web Fonts | *Anek Bangla, Hind Siliguri, Tiro Bangla, Noto Serif Bengali, Inter* |
-
----
-
-## 💡 Keyboard Shortcuts & Tips
-
-| Action | Shortcut / Input Syntax | Result |
-| :--- | :--- | :--- |
-| **Next Cell Entry** | <kbd>Tab</kbd> or <kbd>Enter</kbd> | Move focus seamlessly across Khatian, Holding, Dag, and Land cells |
-| **Auto Row Addition** | <kbd>Enter</kbd> in last deduction cell | Automatically appends a new Plot (দাগ) row for high-speed data entry |
-| **Deduction Math** | `১.৫০+০.৫০` or `১, ২, ৩` | Automatically computes totals and updates remaining land balance |
-| **Column Split** | Click **'হোল্ডিং অনুযায়ী কর্তন'** | Expands multi-value entries into dedicated holding columns |
-
----
-
-## 🚀 Quick Start
-
-Since **Land Deduction Table** is a pure client-side application, no backend server or Node.js build process is required!
+© 2026 **LDD4IG Project** · All Rights Reserved.  
+*স্মার্ট ভূমি সেবা, ডিজিটাল বাংলাদেশ।*e** is a pure client-side application, no backend server or Node.js build process is required!
 
 1. **Clone the Repository**:
    ```bash

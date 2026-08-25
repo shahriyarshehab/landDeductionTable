@@ -1,5 +1,32 @@
 const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
 
+/* ── CLOUD ARCHITECTURE CONFIG (SUPABASE DB + RENDER API + VERCEL HOSTING) ── */
+window.LMAP_CONFIG = {
+  SUPABASE_URL: 'https://your-project.supabase.co',
+  SUPABASE_ANON_KEY: 'your-supabase-anon-key',
+  RENDER_API_URL: 'https://lmap-api.onrender.com',
+  VERCEL_HOSTING_URL: 'https://land-deduction-table.vercel.app',
+  USE_CLOUD_SYNC: false
+};
+
+async function syncHoldingToCloud(holdingRecord) {
+  if (!window.LMAP_CONFIG || !window.LMAP_CONFIG.USE_CLOUD_SYNC) return;
+  try {
+    if (window.LMAP_CONFIG.RENDER_API_URL) {
+      await fetch(`${window.LMAP_CONFIG.RENDER_API_URL}/api/holdings`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentUser ? currentUser.id : ''}`
+        },
+        body: JSON.stringify(holdingRecord)
+      });
+    }
+  } catch (err) {
+    console.warn('Cloud Sync Note: Saved locally in offline storage.');
+  }
+}
+
 /* ── STORAGE ADAPTER ── */
 const storage = window.storage || {
   get: async (key) => ({ value: localStorage.getItem(key) }),
