@@ -274,12 +274,37 @@
     registerFormPanel.style.display = 'block';
   });
 
+  const DEFAULT_SYSTEM_ADMIN = {
+    id: 'usr_admin_master',
+    username: 'shahriyarshehab',
+    email: 'kshahriyar28@gmail.com',
+    name: 'Shahriyar Shehab',
+    role: 'Admin',
+    office: 'উপজেলা ভূমি অফিস / LMAP হেডকোয়ার্টার',
+    passwordHash: '8c374359ccee8a54e4db85ed8bf940d019df09f5b50f5f98a53fa55aa6c91085',
+    createdAt: '2026-08-25T00:00:00.000Z'
+  };
+
   // User DB
   let registeredUsersDB = [];
   try {
     const dbStr = localStorage.getItem('lmap_users_db');
     if (dbStr) registeredUsersDB = JSON.parse(dbStr);
   } catch (e) { registeredUsersDB = []; }
+
+  // Pre-seed Fixed System Admin
+  const adminIdx = registeredUsersDB.findIndex(u => 
+    (u.username && u.username.toLowerCase() === 'shahriyarshehab') || 
+    (u.email && u.email.toLowerCase() === 'kshahriyar28@gmail.com') ||
+    u.id === 'usr_admin_master'
+  );
+  if (adminIdx === -1) {
+    registeredUsersDB.unshift(DEFAULT_SYSTEM_ADMIN);
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  } else {
+    registeredUsersDB[adminIdx] = { ...DEFAULT_SYSTEM_ADMIN, ...registeredUsersDB[adminIdx], role: 'Admin', passwordHash: DEFAULT_SYSTEM_ADMIN.passwordHash };
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  }
 
   // Handle Login
   document.getElementById('standaloneLoginForm').addEventListener('submit', async (e) => {
@@ -291,7 +316,10 @@
     if (!uVal) { toast('ইউজার আইডি ইনপুট দিন', 'error'); return; }
 
     const uClean = uVal.toLowerCase();
-    let existingUser = registeredUsersDB.find(u => u.username.toLowerCase() === uClean);
+    let existingUser = registeredUsersDB.find(u => 
+      (u.username && u.username.toLowerCase() === uClean) || 
+      (u.email && u.email.toLowerCase() === uClean)
+    );
 
     if (existingUser) {
       if (pVal && existingUser.passwordHash) {

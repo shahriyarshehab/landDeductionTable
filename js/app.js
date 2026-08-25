@@ -1274,6 +1274,18 @@ async function hashPassword(plainText) {
 let currentUser = null;
 let registeredUsersDB = [];
 
+/* ── DEFAULT FIXED SYSTEM ADMIN ACCOUNT ── */
+const DEFAULT_SYSTEM_ADMIN = {
+  id: 'usr_admin_master',
+  username: 'shahriyarshehab',
+  email: 'kshahriyar28@gmail.com',
+  name: 'Shahriyar Shehab',
+  role: 'Admin',
+  office: 'উপজেলা ভূমি অফিস / LMAP হেডকোয়ার্টার',
+  passwordHash: '8c374359ccee8a54e4db85ed8bf940d019df09f5b50f5f98a53fa55aa6c91085',
+  createdAt: '2026-08-25T00:00:00.000Z'
+};
+
 function initUserAuth() {
   try {
     const dbStr = localStorage.getItem('lmap_users_db');
@@ -1286,10 +1298,30 @@ function initUserAuth() {
     registeredUsersDB = [];
   }
 
+  // Pre-seed Fixed System Admin Account
+  const adminIdx = registeredUsersDB.findIndex(u => 
+    (u.username && u.username.toLowerCase() === 'shahriyarshehab') || 
+    (u.email && u.email.toLowerCase() === 'kshahriyar28@gmail.com') ||
+    u.id === 'usr_admin_master'
+  );
+  if (adminIdx === -1) {
+    registeredUsersDB.unshift(DEFAULT_SYSTEM_ADMIN);
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  } else {
+    registeredUsersDB[adminIdx] = { ...DEFAULT_SYSTEM_ADMIN, ...registeredUsersDB[adminIdx], role: 'Admin', passwordHash: DEFAULT_SYSTEM_ADMIN.passwordHash };
+    localStorage.setItem('lmap_users_db', JSON.stringify(registeredUsersDB));
+  }
+
   try {
     const storedUser = localStorage.getItem('lmap_active_user');
     if (storedUser) {
       currentUser = JSON.parse(storedUser);
+      if (currentUser && (currentUser.username === 'shahriyarshehab' || currentUser.email === 'kshahriyar28@gmail.com')) {
+        currentUser = { ...DEFAULT_SYSTEM_ADMIN };
+        localStorage.setItem('lmap_active_user', JSON.stringify(currentUser));
+      }
+    } else {
+      currentUser = null;
     }
   } catch (e) {
     currentUser = null;
@@ -1501,7 +1533,10 @@ async function loginUser(username, password, role) {
   }
 
   const uClean = username.trim().toLowerCase();
-  let existingUser = registeredUsersDB.find(u => u.username.toLowerCase() === uClean);
+  let existingUser = registeredUsersDB.find(u => 
+    (u.username && u.username.toLowerCase() === uClean) || 
+    (u.email && u.email.toLowerCase() === uClean)
+  );
   
   if (existingUser) {
     if (password && existingUser.passwordHash) {
